@@ -1,19 +1,21 @@
 {
-  "tema": "Médico e Hospital",
+  "nome_obra": "Naruto",
+  "tema": "Ação/Aventura/Ninja",
   "personagens": [
-    "Doutor Gregory House",
-    "Doutor James Wilson",
-    "Doutor Lisa Cuddy"
+    "Naruto Uzumaki",
+    "Sasuke Uchiha",
+    "Sakura Haruno"
   ],
   "cores": [
-    "Branco",
+    "Laranja",
     "Azul",
-    "Preto"
+    "Amarelo"
   ],
-  "estilo": "Realista",
+  "estilo": "Mangá/Anime",
   "elementos": [
-    "Hospital",
-    "Equipamentos médicos",
-    "Cadeira de rodas"
+    "Nuvens",
+    "Folhas",
+    "Kunai",
+    "Rasengan"
   ]
 }
