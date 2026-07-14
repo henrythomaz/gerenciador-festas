@@ -1,0 +1,63 @@
+/**
+ * @file .editorconfig
+ * @description Configuração do EditorConfig - Padronização de editores.
+ * Define regras de formatação consistentes entre diferentes editores/IDEs.
+ * 
+ * @see https://editorconfig.org/
+ * @see https://marketplace.visualstudio.com/items?itemName=EditorConfig.EditorConfig
+ */
+
+/**
+ * Configuração raiz do projeto.
+ * @property {boolean} root
+ * @description Indica que esta é a configuração raiz, ignorando outras.
+ */
+root = true
+
+/**
+ * Regras padrão para todos os arquivos.
+ * @section [*]
+ * @description Aplica estas configurações a todos os tipos de arquivo.
+ */
+[*]
+  /**
+   * Estilo de indentação.
+   * @property {string} indent_style
+   * @description Usa espaços em vez de tabs para indentação.
+   */
+  indent_style = space
+  
+  /**
+   * Tamanho da indentação.
+   * @property {number} indent_size
+   * @description 2 espaços por nível de indentação.
+   */
+  indent_size = 2
+  
+  /**
+   * Fim de linha.
+   * @property {string} end_of_line
+   * @description Usa LF (Unix) para quebras de linha.
+   */
+  end_of_line = lf
+  
+  /**
+   * Codificação de caracteres.
+   * @property {string} charset
+   * @description UTF-8 para suporte a caracteres especiais.
+   */
+  charset = utf-8
+  
+  /**
+   * Remove espaços em branco no final das linhas.
+   * @property {boolean} trim_trailing_whitespace
+   * @description Mantém o código limpo e evita diffs desnecessários.
+   */
+  trim_trailing_whitespace = true
+  
+  /**
+   * Adiciona nova linha no final do arquivo.
+   * @property {boolean} insert_final_newline
+   * @description Garante que arquivos terminem com uma linha vazia.
+   */
+  insert_final_newline = true

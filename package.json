@@ -1,25 +1,31 @@
 {
   "name": "gerador-festas",
-  "version": "1.0.0",
-  "description": "SaaS para controle de estoque, vendas e geração de contratos.",
-  "main": "src/index.js",
+  "private": true,
+  "packageManager": "yarn@4.13.0",
+  "version": "2.0.0",
+  "workspaces": [
+    "apps/api",
+    "apps/web"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node ."
+    "api": "yarn workspace gf-servidor dev",
+    "web": "yarn workspace gf-web dev",
+    "build:web": "yarn workspace gf-web build",
+    "deploy:web": "gh-pages -d apps/web/dist",
+    "lint:web": "yarn workspace gf-web lint",
+    "lint:api": "yarn workspace gf-servidor lint"
   },
-  "repository": {
-    "type": "git",
-    "url": "git@github-pessoal:henrythomaz/gerador-festas"
+  "devDependencies": {
+    "@babel/preset-env": "^8.0.2",
+    "@babel/register": "^8.0.1",
+    "@tanstack/router-plugin": "^1.168.20",
+    "gh-pages": "^6.3.0"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "module",
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
-    "axios": "^1.18.1",
-    "dotenv": "^17.4.2",
-    "groq-sdk": "^1.3.0",
-    "openai": "^6.46.0"
+    "@tanstack/react-query": "^5.101.2",
+    "@tanstack/react-router": "^1.170.18",
+    "@tanstack/react-start": "^1.168.28",
+    "motion": "^12.42.2",
+    "umzug": "^3.8.3"
   }
 }

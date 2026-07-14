@@ -1,0 +1,21 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+RUN corepack enable
+RUN apk add --no-cache postgresql-client
+
+COPY package.json yarn.lock ./
+COPY .yarn ./.yarn
+COPY .yarnrc.yml ./
+
+COPY apps/api/package.json ./apps/api/package.json
+COPY apps/web/package.json ./apps/web/package.json
+
+RUN yarn install --immutable
+
+COPY . .
+
+WORKDIR /app/apps/api
+
+EXPOSE 3000
