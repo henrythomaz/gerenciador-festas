@@ -1,8 +1,8 @@
-// src/services/imageSearch.js
 import axios from 'axios';
 
-export async function searchImageUrl(termo, maxTentativas = 3) {
-  for (let tentativa = 1; tentativa <= maxTentativas; tentativa++) {
+// Nova função: retorna um array de URLs
+export async function searchImageUrls(termo, maxUrls = 5) {
+  for (let tentativa = 1; tentativa <= 3; tentativa++) {
     try {
       const pagina = await axios.get(
         `https://duckduckgo.com/?q=${encodeURIComponent(termo)}`,
@@ -30,14 +30,18 @@ export async function searchImageUrl(termo, maxTentativas = 3) {
       if (!resposta.data.results || !resposta.data.results.length) {
         throw new Error('Nenhuma imagem encontrada');
       }
-      return resposta.data.results[0].image;
+      // Retorna até maxUrls URLs
+      return resposta.data.results.slice(0, maxUrls).map(r => r.image);
     } catch (err) {
-      console.log(`🔍 Busca "${termo}" (tentativa ${tentativa}/${maxTentativas}) falhou: ${err.message || err}`);
-      if (tentativa < maxTentativas) {
-        console.log('⏳ Tentando novamente...');
-        await new Promise((r) => setTimeout(r, 2000));
-      }
+      console.log(`Busca "${termo}" (tentativa ${tentativa}/3) falhou: ${err.message}`);
+      if (tentativa < 3) await new Promise((r) => setTimeout(r, 2000));
     }
   }
-  return null;
+  return [];
+}
+
+// Mantém a função antiga para compatibilidade (usa a nova internamente)
+export async function searchImageUrl(termo, maxTentativas = 3) {
+  const urls = await searchImageUrls(termo, 1);
+  return urls.length ? urls[0] : null;
 }

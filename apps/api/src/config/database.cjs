@@ -2,7 +2,7 @@
  * @file database.cjs
  * @description Configuração de conexão com o banco de dados.
  * Define as credenciais e configurações para o Sequelize.
- * 
+ *
  * @note Este arquivo está em CommonJS (.cjs) por compatibilidade
  * com ferramentas que exigem CommonJS.
  */
@@ -17,7 +17,7 @@ require("dotenv/config");
  * @throws {Error} Se a variável de ambiente não estiver definida
  * @description Garante que todas as variáveis de ambiente necessárias
  * para a conexão com o banco de dados estejam definidas.
- * 
+ *
  * @example
  * const host = required("DB_HOST");
  * // Se DB_HOST não estiver definido, lança um erro
@@ -35,7 +35,7 @@ function required(name) {
  * @type {Object}
  * @description Define todas as credenciais e configurações do banco de dados.
  * Utiliza as variáveis de ambiente para definir as credenciais.
- * 
+ *
  * @property {string} dialect - Dialeto do banco de dados (postgres, mysql, etc)
  * @property {string} host - Host do banco de dados
  * @property {number} port - Porta do banco de dados
@@ -45,7 +45,7 @@ function required(name) {
  * @property {Object} define - Configurações padrão dos modelos
  * @property {boolean} define.timestamps - Adiciona campos createdAt e updatedAt
  * @property {boolean} define.underscored - Usa snake_case para nomes de colunas
- * 
+ *
  * @example
  * // Usando a configuração
  * import { Sequelize } from 'sequelize';

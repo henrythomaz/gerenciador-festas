@@ -40,7 +40,7 @@ interface DatabaseConfig {
  * @throws {Error} Se a variável de ambiente não estiver definida
  * @description Garante que todas as variáveis de ambiente necessárias
  * para a conexão com o banco de dados estejam definidas.
- * 
+ *
  * @example
  * // Uso típico
  * const host = required("DB_HOST");
@@ -59,13 +59,13 @@ function required(name: string): string {
  * @type {DatabaseConfig}
  * @description Define todas as credenciais e configurações do Sequelize.
  * Utiliza variáveis de ambiente para dados sensíveis.
- * 
+ *
  * @example
  * // Usando a configuração
  * import config from './config/database.js';
  * import { Sequelize } from 'sequelize';
  * const sequelize = new Sequelize(config);
- * 
+ *
  * @example
  * // Exemplo de .env
  * DB_DIALECT=postgres

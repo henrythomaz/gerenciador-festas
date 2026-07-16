@@ -8,10 +8,10 @@
  * Configurações de conexão com Redis.
  * @type {Object}
  * @description Define host e porta para conexão com o Redis.
- * 
+ *
  * @property {string|undefined} host - Host do Redis (obtido de REDIS_HOST)
  * @property {string|undefined} port - Porta do Redis (obtido de REDIS_PORT)
- * 
+ *
  * @example
  * // Usando a configuração
  * import redisConfig from './config/redis.js';
@@ -20,7 +20,7 @@
  *   host: redisConfig.host,
  *   port: Number(redisConfig.port)
  * });
- * 
+ *
  * @example
  * // Com IORedis
  * const redis = new Redis({

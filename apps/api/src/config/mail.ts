@@ -10,9 +10,9 @@ import "dotenv/config";
  * Configurações do serviço de email.
  * @type {Object}
  * @description Define o remetente padrão para envio de emails.
- * 
+ *
  * @property {string} from - Email do remetente (obtido da variável MAIL_FROM)
- * 
+ *
  * @example
  * // Usando a configuração
  * import mailConfig from './config/mail.js';

@@ -6,6 +6,7 @@
  */
 
 import Mail from "../../lib/Mail.js";
+import { emailTemplate } from "../../lib/emailTemplate.js";
 
 /**
  * Interface para os dados necessários para o job de boas-vindas de volta.
@@ -23,14 +24,14 @@ interface WelcomeToBackData {
  * @class WelcomeToBackJob
  * @description Responsável por enviar um email de "bem-vindo de volta"
  * para usuários inativos que retornam à plataforma após 7+ dias.
- * 
+ *
  * @example
  * // Adicionando o job à fila
  * await Queue.add(WelcomeToBackJob.key, {
  *   nome: "Henry Campos",
  *   email: "henry@email.com"
  * });
- * 
+ *
  * // Este job é acionado automaticamente no login
  * // quando o usuário não acessa há mais de 7 dias
  */
@@ -54,7 +55,7 @@ class WelcomeToBackJob {
    * @returns {Promise<void>}
    * @description Envia um email caloroso de boas-vindas para usuários
    * que retornam após um período de inatividade.
-   * 
+   *
    * @example
    * // Processamento do job
    * await job.handle({ data: { nome, email } });
@@ -69,15 +70,15 @@ class WelcomeToBackJob {
     await Mail.send({
       to: email,
       subject: `Bem-vindo(a) de volta! - ${email}`,
-      html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #16a34a;">Olá ${nome}!</h1>
-          <p>Bem-vindo(a) de volta ao sistema Gerenciador de Festas. Que bom revê-lo(a)!</p>
-          <p>Acesse sua conta e continue de onde parou.</p>
-          <hr style="margin: 24px 0; border-color: #e5e7eb;">
-          <p style="color: #6b7280; font-size: 14px;">Equipe do Gerenciador de Festas</p>
-        </div>
-      `,
+      html: emailTemplate({
+        title: `Que bom ver você novamente!`,
+        subtitle: `Olá ${nome}!`,
+        content: `
+          Sentimos sua falta.
+
+          Entre na plataforma e continue administrando seus contratos e festas exatamente de onde parou.
+        `,
+      }),
       text: `Olá ${nome}. Bem-vindo(a) de volta ao sistema de Gerenciamento de Festas!`,
     });
   }

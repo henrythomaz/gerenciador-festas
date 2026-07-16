@@ -12,7 +12,7 @@ import "dotenv/config";
  * Configuração do Swagger/OpenAPI.
  * @type {Object}
  * @description Define todas as especificações da API para documentação.
- * 
+ *
  * @property {Object} definition - Definição da especificação OpenAPI
  * @property {string} definition.openapi - Versão do OpenAPI (3.0.0)
  * @property {Object} definition.info - Informações da API
@@ -24,16 +24,16 @@ import "dotenv/config";
  * @property {Object} components - Componentes reutilizáveis
  * @property {Object} components.securitySchemes - Esquemas de segurança
  * @property {Object} schemas - Esquemas de modelos de dados
- * 
+ *
  * @example
  * // Acessando a documentação
  * // GET /docs - UI do Swagger
  * // GET /docs.json - Especificação JSON
- * 
+ *
  * // Usando em uma rota
  * app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
  * app.get("/docs.json", (req, res) => res.json(swaggerSpec));
- * 
+ *
  * @see https://swagger.io/specification/
  */
 const options = {

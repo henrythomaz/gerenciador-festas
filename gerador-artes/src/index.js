@@ -4,7 +4,7 @@ import { createPrompts } from './ai/promptGenerator.js';
 import { generateImages } from './ai/imageGenerator.js';
 
 async function main() {
-  const userPrompt = 'Crie uma arte do anime Naturo';
+  const userPrompt = 'Crie uma arte da série Cobra Kai';
   console.log('Prompt do usuário:', userPrompt);
 
   const data = await analyzeTheme(userPrompt);

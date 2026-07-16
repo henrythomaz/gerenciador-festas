@@ -2024,26 +2024,26 @@ __metadata:
   linkType: hard
 
 "@lovable.dev/vite-plugin-dev-server-bridge@npm:^1.0.2":
-  version: 1.1.0
-  resolution: "@lovable.dev/vite-plugin-dev-server-bridge@npm:1.1.0"
+  version: 1.1.1
+  resolution: "@lovable.dev/vite-plugin-dev-server-bridge@npm:1.1.1"
   peerDependencies:
     vite: ">=5.0.0 <9.0.0"
   peerDependenciesMeta:
     vite:
       optional: false
-  checksum: 10c0/25f4ada5f393bcf0e97b6ddc53290f5731225bae44c6841561be4c3b9ef5494b7507e4882e76f8617cb2c3015bcd52e91a2903fc3982b8715a72e4f6d9e458e3
+  checksum: 10c0/c6f947dc79062777c94d7d99120460afb1e4388c2a3fed50ef7386863dedef8b789c51d5e39b57b89b635bbfc7106a5bf44ff3496b08ebac2d70439f492b8d18
   languageName: node
   linkType: hard
 
 "@lovable.dev/vite-plugin-hmr-gate@npm:^1.1.1":
-  version: 1.1.2
-  resolution: "@lovable.dev/vite-plugin-hmr-gate@npm:1.1.2"
+  version: 1.1.3
+  resolution: "@lovable.dev/vite-plugin-hmr-gate@npm:1.1.3"
   peerDependencies:
     vite: ">=5.0.0 <9.0.0"
   peerDependenciesMeta:
     vite:
       optional: false
-  checksum: 10c0/eddb6265ff1e90b27f2ac2505834dc8afd2263370c007b08ee6293a09fbddc3b539a50dc36dac94f37ed89d76f921935b634ce92905d7dbdeac40eabde724d7a
+  checksum: 10c0/8f7017fb88ac1eabe896637469dee9054e5ef98f5e41d8385207470ffd199af7c2b02299018085d7fb97f9d6509547844392e8260218eb5563034ed468a7f3ff
   languageName: node
   linkType: hard
 
@@ -7909,6 +7909,7 @@ __metadata:
     "@tanstack/router-plugin": "npm:^1.168.20"
     gh-pages: "npm:^6.3.0"
     motion: "npm:^12.42.2"
+    node-cron: "npm:^4.6.0"
     umzug: "npm:^3.8.3"
   languageName: unknown
   linkType: soft
@@ -9815,6 +9816,13 @@ __metadata:
   dependencies:
     node-gyp: "npm:latest"
   checksum: 10c0/6d687ffbc66e9735f4182e4c05d137d083be1fa5972b1762307e007804a85b70f810fed5b908f27f48caa4ed831517c95eec5137c8a02eaa08893bdef7fec05e
+  languageName: node
+  linkType: hard
+
+"node-cron@npm:^4.6.0":
+  version: 4.6.0
+  resolution: "node-cron@npm:4.6.0"
+  checksum: 10c0/6523219aedd60441b43acb65670d98751a875185d88666d32ee62b044f15ffdd6a5d5422f0a060a324df918990f218fe9e400bf1db54d308a72642e396a1fbd2
   languageName: node
   linkType: hard
 

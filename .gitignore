@@ -1,17 +1,32 @@
+# Dependências
+node_modules/
+apps/*/node_modules/
+
+# Build
+dist/
+build/
+
+# Ambiente
+.env
+.env.*
+
+# Yarn
 .yarn/*
-!.yarn/patches
-!.yarn/plugins
 !.yarn/releases
+!.yarn/plugins
 !.yarn/sdks
 !.yarn/versions
 
-# Whether you use PnP or not, the node_modules folder is often used to store
-# build artifacts that should be gitignored
-node_modules
-
-# Swap the comments on the following lines if you wish to use zero-installs
-# In that case, don't forget to run `yarn config set enableGlobalCache false`!
-# Documentation here: https://yarnpkg.com/features/caching#zero-installs
-
-#!.yarn/cache
+# PnP
 .pnp.*
+.yarn/install-state.gz
+
+# Logs
+*.log
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Windows ADS
+*:Zone.Identifier

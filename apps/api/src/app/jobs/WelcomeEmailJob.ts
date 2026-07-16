@@ -5,6 +5,7 @@
  */
 
 import Mail from "../../lib/Mail.js";
+import { emailTemplate } from "../../lib/emailTemplate.js";
 
 /**
  * Interface para os dados necessários para o job de boas-vindas.
@@ -22,7 +23,7 @@ interface WelcomeEmailData {
  * @class WelcomeEmailJob
  * @description Responsável por enviar um email de boas-vindas
  * para novos usuários após o cadastro.
- * 
+ *
  * @example
  * // Adicionando o job à fila
  * await Queue.add(WelcomeEmailJob.key, {
@@ -50,7 +51,7 @@ class WelcomeEmailJob {
    * @returns {Promise<void>}
    * @description Envia um email de boas-vindas com informações iniciais
    * sobre o sistema e como começar a usar.
-   * 
+   *
    * @example
    * // Processamento do job
    * await job.handle({ data: { nome, email } });
@@ -65,15 +66,17 @@ class WelcomeEmailJob {
     await Mail.send({
       to: email,
       subject: `Bem-vindo(a) ao Gerenciador de Festas! - ${email}`,
-      html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #16a34a;">Olá ${nome}!</h1>
-          <p>Bem-vindo(a) ao sistema de Geração de Festas. Estamos felizes em tê-lo(a) conosco.</p>
-          <p>Explore nossas funcionalidades e comece a organizar seus atendimentos.</p>
-          <hr style="margin: 24px 0; border-color: #e5e7eb;">
-          <p style="color: #6b7280; font-size: 14px;">Equipe do Gerenciador de Festas</p>
-        </div>
-      `,
+      html: emailTemplate({
+        title: `Bem-vindo, ${nome}!`,
+        subtitle: "Sua conta foi criada com sucesso.",
+        content: `
+          Estamos muito felizes por você fazer parte da plataforma.
+
+          Esperamos que ela facilite muito a organização dos seus eventos.
+
+          Sempre que precisar estaremos à disposição.
+        `,
+      }),
       text: `Olá ${nome}. Bem-vindo(a) ao sistema de Geração de Festas!`,
     });
   }

@@ -3,19 +3,20 @@
  * @description Modelo de usuário da aplicação.
  * Define a estrutura, validações e métodos do modelo User no banco de dados.
  * Utiliza Sequelize ORM para gerenciar a persistência.
+ *
+ * @note Os campos no banco de dados estão em inglês, mas a API expõe
+ * os nomes em português para melhor experiência do desenvolvedor.
  */
 
-import {
-  Sequelize,
-  DataTypes,
-  Model,
-} from "sequelize";
+import { Sequelize, DataTypes, Model } from "sequelize";
 import bcrypt from "bcryptjs";
 
 /**
  * Interface que define os atributos do modelo User.
  * @interface AtributosUsuario
  * @description Descreve todos os campos que um usuário pode ter.
+ * Os nomes das propriedades estão em português (API), mas serão mapeados
+ * para os nomes em inglês no banco de dados via `field` no sequelize.
  */
 interface AtributosUsuario {
   /** ID único do usuário (auto-incrementado) */
@@ -46,6 +47,18 @@ interface AtributosUsuario {
  * @extends Model<AtributosUsuario>
  * @implements AtributosUsuario
  * @description Representa um usuário no sistema com todos os seus atributos e métodos.
+ *
+ * @example
+ * // Criando um usuário (API usa português)
+ * const user = await User.create({
+ *   nome: "Henry Campos",    // Mapeado para "name" no banco
+ *   email: "henry@email.com",
+ *   senha: "123456"          // Mapeado para "password_hash" no banco
+ * });
+ *
+ * // Listando usuários (resposta em português)
+ * const users = await User.findAll();
+ * console.log(users[0].nome); // "Henry Campos"
  */
 class User extends Model<AtributosUsuario> implements AtributosUsuario {
   declare id?: number;
@@ -66,33 +79,58 @@ class User extends Model<AtributosUsuario> implements AtributosUsuario {
    * @param {Sequelize} sequelize - Instância do Sequelize conectada ao banco
    * @returns {Model} Modelo User inicializado
    * @description Define os campos, configurações e hooks do modelo.
+   *
+   * Os campos em português (API) são mapeados para os campos em inglês (banco)
+   * usando a propriedade `field` do Sequelize.
    */
   static initModel(sequelize: Sequelize) {
     const model = super.init(
       {
-        /** Nome do usuário */
-        nome: DataTypes.STRING,
+        /** Nome do usuário (mapeado para 'name' no banco) */
+        nome: {
+          type: DataTypes.STRING,
+          field: "name",
+        },
         /** Email do usuário */
-        email: DataTypes.STRING,
+        email: {
+          type: DataTypes.STRING,
+          field: "email",
+        },
         /** Senha em texto plano (não é armazenada no banco) */
         senha: DataTypes.VIRTUAL,
-        /** Hash da senha (armazenado no banco) */
-        senha_hash: DataTypes.STRING,
-        /** Status de confirmação do email */
+        /** Hash da senha (mapeado para 'password_hash' no banco) */
+        senha_hash: {
+          type: DataTypes.STRING,
+          field: "password_hash",
+        },
+        /** Status de confirmação do email (mapeado para 'email_confirmed' no banco) */
         email_confirmado: {
           type: DataTypes.BOOLEAN,
           defaultValue: false,
+          field: "email_confirmed",
         },
-        /** Token para confirmação do email */
+        /** Token para confirmação do email (mapeado para 'email_confirmation_token' no banco) */
         email_confirmacao_token: {
           type: DataTypes.STRING,
           allowNull: true,
+          field: "email_confirmation_token",
         },
-        /** Data do último login */
+        /** Data do último login (mapeado para 'last_login' no banco) */
         ultimo_login: {
           type: DataTypes.DATE,
           allowNull: true,
           defaultValue: null,
+          field: "last_login",
+        },
+        /** Data de criação do registro (mapeado para 'created_at' no banco) */
+        criado_em: {
+          type: DataTypes.DATE,
+          field: "created_at",
+        },
+        /** Data da última atualização (mapeado para 'updated_at' no banco) */
+        atualizado_em: {
+          type: DataTypes.DATE,
+          field: "updated_at",
         },
       },
       {
@@ -120,20 +158,20 @@ class User extends Model<AtributosUsuario> implements AtributosUsuario {
     return model;
   }
 
-  // /**
-  //  * Define os relacionamentos do modelo User.
-  //  * @static
-  //  * @method associate
-  //  * @param {any} models - Todos os modelos da aplicação
-  //  * @description Relaciona User com outros modelos (ex: Estacao).
-  //  */
-  // static associate(models: any) {
-  //   this.belongsToMany(models.Estacao, {
-  //     through: "usuarios_estacoes",
-  //     foreignKey: "usuario_id",
-  //     as: "estacoes",
-  //   });
-  // }
+  /**
+   * Define as associações do modelo User com outros modelos.
+   * @static
+   * @method associate
+   * @param {Object} models - Objeto contendo todos os modelos carregados
+   * @description (Exemplo) Um usuário pode ter muitos pedidos, etc.
+   */
+  static associate(models: any) {
+    // Um usuário pode ter muitos contratos
+    models.User.hasMany(models.Contract, {
+      foreignKey: "usuario_id",
+      as: "contratos",
+    });
+  }
 
   /**
    * Verifica se a senha fornecida corresponde ao hash armazenado.
@@ -142,7 +180,7 @@ class User extends Model<AtributosUsuario> implements AtributosUsuario {
    * @param {string} senha - Senha em texto plano para verificação
    * @returns {Promise<boolean>} True se a senha estiver correta, false caso contrário
    * @description Compara a senha fornecida com o hash armazenado no banco.
-   * 
+   *
    * @example
    * // Verificar senha do usuário
    * const usuario = await User.findByPk(1);
@@ -156,8 +194,4 @@ class User extends Model<AtributosUsuario> implements AtributosUsuario {
   }
 }
 
-/**
- * Exporta o modelo User.
- * @default
- */
 export default User;

@@ -15,7 +15,7 @@ import cors from "cors";
 /**
  * Classe principal da aplicação.
  * @class App
- * @description Centraliza a configuração do servidor Express, incluindo middlewares, 
+ * @description Centraliza a configuração do servidor Express, incluindo middlewares,
  * rotas e tratamento de erros.
  */
 class App {

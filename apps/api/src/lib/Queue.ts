@@ -11,10 +11,9 @@ import "dotenv/config";
 // Importação dos jobs
 import WelcomeEmailJob from "../app/jobs/WelcomeEmailJob.js";
 import ResetPasswordJob from "../app/jobs/ResetPasswordJob.js";
-// import SaveLeituraJob from "../app/jobs/SaveLeituraJob.js";
-// import NotificarProprietarioJob from "../app/jobs/NotificarProprietarioJob.js";
 import WelcomeToBackJob from "../app/jobs/WelcomeToBackJob.js";
-import ConfirmarEmailJob from "../app/jobs/ConfirmarEmailJob.js";
+import ConfirmEmailJob from "../app/jobs/ConfirmEmailJob.js";
+import ExpirationNotificationJob from "../app/jobs/ExpirationNotificationJob.js";
 
 /**
  * Lista de todos os jobs disponíveis na aplicação.
@@ -26,10 +25,9 @@ import ConfirmarEmailJob from "../app/jobs/ConfirmarEmailJob.js";
 const jobs = [
   WelcomeEmailJob,
   WelcomeToBackJob,
-  // SaveLeituraJob,
   ResetPasswordJob,
-  // NotificarProprietarioJob,
-  ConfirmarEmailJob
+  ConfirmEmailJob,
+  ExpirationNotificationJob,
 ];
 
 /**
@@ -38,21 +36,21 @@ const jobs = [
  * @description Gerencia todas as filas da aplicação, inicializando
  * o Bee-Queue para cada job e fornecendo métodos para adicionar
  * tarefas e processar filas.
- * 
+ *
  * @example
  * // Adicionar job à fila
  * await Queue.add(WelcomeEmailJob.key, {
  *   nome: "Henry",
  *   email: "henry@email.com"
  * });
- * 
+ *
  * @example
  * // Iniciar processamento
  * Queue.processQueue();
  */
 class Queue {
   /** Armazena todas as filas configuradas */
-  private queues: { [key: string]: { bee: Bee, handle: Function } };
+  private queues: { [key: string]: { bee: Bee; handle: Function } };
 
   /**
    * Construtor da classe Queue.
@@ -90,10 +88,10 @@ class Queue {
    * @returns {Promise<Object>} Job criado
    * @description Adiciona uma nova tarefa à fila especificada.
    * O job será processado quando a fila for executada.
-   * 
+   *
    * @example
    * // Adicionar job de confirmação de email
-   * await Queue.add(ConfirmarEmailJob.key, {
+   * await Queue.add(ConfirmEmailJob.key, {
    *   nome: "João",
    *   email: "joao@email.com",
    *   token: "abc123"
@@ -108,7 +106,7 @@ class Queue {
    * @method processQueue
    * @description Configura o processador para cada fila
    * e escuta eventos de falha para logging.
-   * 
+   *
    * @example
    * // Iniciar worker
    * Queue.processQueue();
@@ -129,7 +127,7 @@ class Queue {
    * @param {Error} err - Erro ocorrido
    * @description Em ambiente de desenvolvimento, loga o erro no console.
    * Em produção, pode ser integrado com sistema de monitoramento.
-   * 
+   *
    * @example
    * // Exemplo de log de erro
    * // Queue WelcomeEmailJob: FAILED Error: Email não enviado

@@ -13,12 +13,12 @@ import User from "../models/User.js";
 
 import Queue from "../../lib/Queue.js";
 import WelcomeEmailJob from "../jobs/WelcomeEmailJob.js";
-import ConfirmarEmailJob from "../jobs/ConfirmarEmailJob.js";
+import ConfirmEmailJob from "../jobs/ConfirmEmailJob.js";
 
 // Utils
-import filtroLike from "../utils/filtroLike.js";
-import intervaloData from "../utils/intervaloData.js";
-import ordenacao from "../utils/ordenacao.js";
+import likeFilter from "../utils/likeFilter.js";
+import dataInterval from "../utils/dataInterval.js";
+import ordenation from "../utils/ordenation.js";
 
 /**
  * Interface para parâmetros de rota com ID de usuário.
@@ -59,7 +59,7 @@ class UsersController {
    * @param {Request} req - Objeto de requisição Express
    * @param {Response} res - Objeto de resposta Express
    * @returns {Promise<Response>} Resposta JSON com lista de usuários
-   * 
+   *
    * @example
    * // GET /usuarios?nome=Joao&page=1&limit=10
    */
@@ -103,17 +103,14 @@ class UsersController {
       const and: any[] = [];
 
       // Aplica filtros LIKE para nome e email
-      filtroLike(and, "nome", query.nome);
-      filtroLike(and, "email", query.email);
+      likeFilter(and, "nome", query.nome);
+      likeFilter(and, "email", query.email);
 
       // Aplica filtros de data para criação e atualização
-      const criado = intervaloData(
-        query.criadoAntes,
-        query.criadoDepois
-      );
+      const criado = dataInterval(query.criadoAntes, query.criadoDepois);
       if (criado) and.push({ criado_em: criado });
 
-      const atualizado = intervaloData(
+      const atualizado = dataInterval(
         query.atualizadoAntes,
         query.atualizadoDepois
       );
@@ -130,7 +127,7 @@ class UsersController {
       const usuarios = await User.findAll({
         where,
         attributes: ["id", "nome", "email"],
-        order: ordenacao(query.sort),
+        order: ordenation(query.sort),
         limit,
         offset: (page - 1) * limit,
       });
@@ -149,7 +146,7 @@ class UsersController {
    * @param {Request<UsuarioIdParam>} req - Objeto de requisição Express com parâmetro ID
    * @param {Response} res - Objeto de resposta Express
    * @returns {Promise<Response>} Resposta JSON com dados do usuário
-   * 
+   *
    * @example
    * // GET /usuarios/1
    */
@@ -176,7 +173,7 @@ class UsersController {
    * @param {Request} req - Objeto de requisição Express
    * @param {Response} res - Objeto de resposta Express
    * @returns {Promise<Response>} Resposta JSON com dados do usuário criado
-   * 
+   *
    * @example
    * // POST /usuarios
    * // Request body
@@ -198,10 +195,7 @@ class UsersController {
       nome: Yup.string().required(),
       email: Yup.string().email().required(),
       senha: Yup.string().required().min(8),
-      confirmarSenha: Yup.string().oneOf(
-        [Yup.ref("senha")],
-        "Senha não bate."
-      ),
+      confirmarSenha: Yup.string().oneOf([Yup.ref("senha")], "Senha não bate."),
     });
 
     if (!(await schema.isValid(body))) {
@@ -244,7 +238,7 @@ class UsersController {
     /**
      * Adiciona jobs à fila para envio de emails.
      */
-    await Queue.add(ConfirmarEmailJob.key, {
+    await Queue.add(ConfirmEmailJob.key, {
       nome,
       email,
       token,
@@ -263,7 +257,7 @@ class UsersController {
    * @param {Request<UsuarioIdParam>} req - Objeto de requisição Express com parâmetro ID
    * @param {Response} res - Objeto de resposta Express
    * @returns {Promise<Response>} Resposta JSON com dados atualizados
-   * 
+   *
    * @example
    * // PUT /usuarios/1
    * // Request body
@@ -315,7 +309,7 @@ class UsersController {
    * @param {Request<UsuarioIdParam>} req - Objeto de requisição Express com parâmetro ID
    * @param {Response} res - Objeto de resposta Express
    * @returns {Promise<Response>} Resposta vazia com status 200
-   * 
+   *
    * @example
    * // DELETE /usuarios/1
    */
@@ -346,7 +340,7 @@ class UsersController {
    * @param {Request} req - Objeto de requisição Express
    * @param {Response} res - Objeto de resposta Express
    * @returns {Promise<Response>} Redireciona para a página de login do frontend
-   * 
+   *
    * @example
    * // GET /confirmar-email?token=abc123...
    */

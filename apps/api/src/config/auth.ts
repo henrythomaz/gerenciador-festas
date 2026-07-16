@@ -23,7 +23,7 @@ interface AuthConfig {
  * @type {AuthConfig}
  * @description Define a chave secreta e o tempo de expiração dos tokens.
  * A chave secreta é obtida da variável de ambiente APP_SECRET.
- * 
+ *
  * @example
  * // Usando a configuração
  * import auth from './config/auth.js';

@@ -9,17 +9,22 @@ import { Sequelize } from "sequelize";
 import config from "../config/database.js";
 
 import User from "../app/models/User.js";
+import Customer from "../app/models/Customer.js";
+import Product from "../app/models/Product.js";
+import Contract from "../app/models/Contract.js";
+import Category from "../app/models/Category.js";
+import ContractProduct from "../app/models/ContractProduct.js";
 
 /**
  * Classe de gerenciamento do banco de dados.
  * @class Database
  * @description Responsável por estabelecer a conexão com o banco de dados
  * e inicializar todos os modelos e seus relacionamentos.
- * 
+ *
  * @example
  * // Importando a instância do banco de dados
  * import database from './database/index.js';
- * 
+ *
  * // A conexão é estabelecida automaticamente
  * // Os modelos estão disponíveis em database.models
  * const User = database.models.User;
@@ -27,7 +32,7 @@ import User from "../app/models/User.js";
 class Database {
   /** Conexão com o banco de dados via Sequelize */
   public connection: Sequelize;
-  
+
   /** Mapeamento de todos os modelos da aplicação */
   public models: Record<string, any>;
 
@@ -43,15 +48,20 @@ class Database {
      * @type {Sequelize}
      */
     this.connection = new Sequelize(config);
-    
+
     /**
      * Registra todos os modelos da aplicação.
      * @type {Object}
      */
     this.models = {
-      User
+      User,
+      Customer,
+      Contract,
+      Product,
+      Category,
+      ContractProduct,
     };
-    
+
     /**
      * Inicializa os modelos e suas associações.
      */
@@ -64,7 +74,7 @@ class Database {
    * @method initModels
    * @description Para cada modelo registrado, executa o método initModel
    * se ele existir, passando a conexão do Sequelize.
-   * 
+   *
    * @example
    * // Cada modelo deve implementar:
    * class User extends Model {
@@ -88,7 +98,7 @@ class Database {
    * @method runAssociations
    * @description Para cada modelo registrado, executa o método associate
    * se ele existir, passando todos os modelos para definir relacionamentos.
-   * 
+   *
    * @example
    * // Cada modelo pode implementar:
    * class User extends Model {

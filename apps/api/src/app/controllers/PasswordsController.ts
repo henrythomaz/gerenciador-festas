@@ -28,7 +28,7 @@ class PasswordsController {
    * @param {Request} req - Objeto de requisição Express
    * @param {Response} res - Objeto de resposta Express
    * @returns {Promise<Response>} Resposta JSON com mensagem de confirmação
-   * 
+   *
    * @example
    * // Request body
    * {
@@ -90,7 +90,7 @@ class PasswordsController {
    * @param {Request} req - Objeto de requisição Express
    * @param {Response} res - Objeto de resposta Express
    * @returns {Promise<Response>} Resposta JSON com mensagem de confirmação
-   * 
+   *
    * @example
    * // Query params: ?token=abc123...
    * // Request body

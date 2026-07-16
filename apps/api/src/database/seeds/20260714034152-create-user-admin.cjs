@@ -5,26 +5,26 @@ const bcrypt = require("bcryptjs");
 module.exports = {
   async up(queryInterface) {
     const email = process.env.ADMIN_EMAIL;
-    const senha = process.env.ADMIN_PASSWORD;
+    const password = process.env.ADMIN_PASSWORD;
 
-    const [usuarios] = await queryInterface.sequelize.query(
+    const [users] = await queryInterface.sequelize.query(
       "SELECT id FROM users WHERE email = :email",
       { replacements: { email } }
     );
 
-    if (!usuarios.length) {
+    if (!users.length) {
       await queryInterface.bulkInsert("users", [
         {
-          nome: "Admin",
+          name: "Admin",
           email,
-          senha_hash: await bcrypt.hash(senha, 8),
+          password_hash: await bcrypt.hash(password, 8),
 
-          email_confirmado: true,
-          email_confirmacao_token: null,
-          ultimo_login: null,
+          email_confirmed: true,
+          email_confirmation_token: null,
+          last_login: null,
 
-          criado_em: new Date(),
-          atualizado_em: new Date(),
+          created_at: new Date(),
+          updated_at: new Date(),
         },
       ]);
     }

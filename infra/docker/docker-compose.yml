@@ -1,5 +1,4 @@
 services:
-  # Nginx como Load Balancer e Proxy Reverso
   nginx:
     image: nginx:alpine
     container_name: nginx-load-balancer
@@ -18,7 +17,6 @@ services:
       - app-network
     restart: unless-stopped
 
-  # Múltiplas instâncias da aplicação
   app:
     build:
       context: ../..
@@ -30,12 +28,13 @@ services:
       - NODE_ENV=development
       - PORT=3000
       - INSTANCE_ID=1
+      - REDIS_HOST=redis          # ← ADICIONADO
     command: yarn dev
     depends_on:
       db:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy   # ← ALTERADO
     env_file:
       - ../../.env
     networks:
@@ -53,12 +52,13 @@ services:
       - NODE_ENV=development
       - PORT=3000
       - INSTANCE_ID=2
+      - REDIS_HOST=redis          # ← ADICIONADO
     command: yarn dev
     depends_on:
       db:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
     env_file:
       - ../../.env
     networks:
@@ -76,12 +76,13 @@ services:
       - NODE_ENV=development
       - PORT=3000
       - INSTANCE_ID=3
+      - REDIS_HOST=redis          # ← ADICIONADO
     command: yarn dev
     depends_on:
       db:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
     env_file:
       - ../../.env
     networks:
@@ -109,11 +110,14 @@ services:
     command: yarn queue
     volumes:
       - ../../apps/api:/app/apps/api
-    depends_on:
-      - redis
-      - db
     environment:
       - NODE_ENV=development
+      - REDIS_HOST=redis          # ← ADICIONADO
+    depends_on:
+      redis:
+        condition: service_healthy   # ← ALTERADO
+      db:
+        condition: service_healthy
     env_file:
       - ../../.env
     networks:
@@ -121,7 +125,7 @@ services:
     restart: unless-stopped
 
   db:
-    image: postgres:16-alpine  # Mudei para PostgreSQL puro
+    image: postgres:16-alpine
     ports:
       - "5432:5432"
     environment:
@@ -140,9 +144,14 @@ services:
     restart: unless-stopped
 
   redis:
-    image: redis:7-alpine  # Usei alpine pra ser mais leve
+    image: redis:7-alpine
     ports:
       - "6379:6379"
+    healthcheck:                       # ← ADICIONADO
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
     networks:
       - app-network
     restart: unless-stopped

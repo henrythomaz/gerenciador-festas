@@ -6,6 +6,7 @@
 
 import app from "./app.js";
 import "dotenv/config";
+import "./cron.js";
 
 /**
  * Porta em que o servidor será executado.

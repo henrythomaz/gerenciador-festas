@@ -26,14 +26,14 @@ interface JwtPayload {
  * @param {NextFunction} next - Função next do Express
  * @returns {Promise<Response|void>} Retorna erro 401 ou chama o próximo middleware
  * @description Verifica se o token JWT é válido e está presente no header Authorization.
- * 
+ *
  * @example
  * // Uso em uma rota
  * routes.get("/usuarios", authMiddleware, usuarios.index);
- * 
+ *
  * // Header esperado
  * Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
- * 
+ *
  * @throws {401} Token não fornecido
  * @throws {401} Token mal formatado
  * @throws {401} Token inválido
@@ -71,7 +71,7 @@ export default async (req: Request, res: Response, next: NextFunction) => {
      * @type {JwtPayload}
      */
     const decoded = jwt.verify(token, auth.secret) as unknown as JwtPayload;
-    
+
     /**
      * Adiciona o ID do usuário à requisição.
      * @property {string} userId - ID do usuário autenticado

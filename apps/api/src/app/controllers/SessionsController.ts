@@ -2,13 +2,15 @@
  * @file SessionsController.ts
  * @description Controlador responsável pela autenticação de usuários.
  * Gerencia o login, verificação de email e geração de tokens JWT.
+ *
+ * @note A API utiliza nomes em português (email, senha, nome, etc.)
+ * O modelo User faz o mapeamento para os nomes em inglês no banco.
  */
 
 import User from "../models/User.js";
 import jwt, { SignOptions } from "jsonwebtoken";
 import { Request, Response } from "express";
 import auth from "../../config/auth.js";
-import { Op } from "sequelize";
 
 import Queue from "../../lib/Queue.js";
 import WelcomeToBackJob from "../jobs/WelcomeToBackJob.js";
@@ -28,17 +30,21 @@ class SessionsController {
    * @param {Request} req - Objeto de requisição Express
    * @param {Response} res - Objeto de resposta Express
    * @returns {Promise<Response>} Resposta JSON com dados do usuário e token JWT
-   * 
+   *
    * @example
-   * // Request body
+   * // Request body (português)
    * {
    *   "email": "usuario@email.com",
    *   "senha": "123456"
    * }
-   * 
-   * // Response
+   *
+   * // Response (português)
    * {
-   *   "user": { "id": 1, "nome": "Usuário", "email": "usuario@email.com" },
+   *   "user": {
+   *     "id": 1,
+   *     "nome": "Usuário",
+   *     "email": "usuario@email.com"
+   *   },
    *   "token": "eyJhbGciOiJIUzI1NiIs..."
    * }
    */
@@ -64,15 +70,15 @@ class SessionsController {
 
     /**
      * Verifica se o email foi confirmado.
+     * @note O campo 'email_confirmado' está em português na API
      */
     if (!usuario.email_confirmado) {
-      console.log(usuario.email_confirmado);
       return res.status(401).json({
         erro: "Confirme seu email antes de acessar.",
       });
     }
 
-    const { id, nome } = usuario;
+    const { id, nome, email: userEmail } = usuario;
 
     /**
      * Verifica se já passou 7 dias desde o último login.
@@ -84,13 +90,21 @@ class SessionsController {
     /**
      * Se não houver registro de ultimo_login ou se for há mais de 7 dias,
      * envia email de boas-vindas de volta.
+     * @note O campo 'ultimo_login' está em português na API
      */
-    if (!usuario.ultimo_login || new Date(usuario.ultimo_login) < seteDiasAtras) {
-      await Queue.add(WelcomeToBackJob.key, { nome, email });
+    if (
+      !usuario.ultimo_login ||
+      new Date(usuario.ultimo_login) < seteDiasAtras
+    ) {
+      await Queue.add(WelcomeToBackJob.key, {
+        nome,
+        email: userEmail,
+      });
     }
 
     /**
      * Atualiza a data do último login.
+     * @note O campo 'ultimo_login' está em português na API
      */
     await usuario.update({ ultimo_login: new Date() });
 
@@ -103,7 +117,7 @@ class SessionsController {
     } as SignOptions);
 
     return res.json({
-      user: { id, nome, email },
+      user: { id, nome, email: userEmail },
       token,
     });
   }

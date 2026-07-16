@@ -1,21 +1,22 @@
 {
-  "nome_obra": "Naruto",
-  "tema": "Ação/Aventura/Ninja",
+  "nome_obra": "Cobra Kai",
+  "tema": "Artes Marciais/Drama",
   "personagens": [
-    "Naruto Uzumaki",
-    "Sasuke Uchiha",
-    "Sakura Haruno"
+    "Johnny Lawrence",
+    "Daniel LaRusso",
+    "Miguel Diaz",
+    "Robbie Keene"
   ],
   "cores": [
-    "Laranja",
-    "Azul",
-    "Amarelo"
+    "Preto",
+    "Branco",
+    "Vermelho"
   ],
-  "estilo": "Mangá/Anime",
+  "estilo": "Retro/Esportivo",
   "elementos": [
-    "Nuvens",
-    "Folhas",
-    "Kunai",
-    "Rasengan"
+    "Cobras",
+    "Caratê",
+    "Dojos",
+    "Faixas"
   ]
 }

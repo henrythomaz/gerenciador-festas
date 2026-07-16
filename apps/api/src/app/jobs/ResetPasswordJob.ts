@@ -6,6 +6,7 @@
 
 import Mail from "../../lib/Mail.js";
 import "dotenv/config";
+import { emailTemplate } from "../../lib/emailTemplate.js";
 
 /**
  * Interface para os dados necessários para o job de redefinição de senha.
@@ -23,7 +24,7 @@ interface ResetPasswordData {
  * @class ResetPasswordJob
  * @description Responsável por enviar um email com link para redefinição
  * de senha quando o usuário solicita recuperação.
- * 
+ *
  * @example
  * // Adicionando o job à fila
  * await Queue.add(ResetPasswordJob.key, {
@@ -51,14 +52,14 @@ class ResetPasswordJob {
    * @returns {Promise<void>}
    * @description Envia um email com link para redefinição de senha
    * contendo o token válido por tempo limitado.
-   * 
+   *
    * @example
    * // Processamento do job
    * await job.handle({ data: { email, token } });
    */
   async handle({ data }: { data: ResetPasswordData }): Promise<void> {
     const { email, token } = data;
-    
+
     /**
      * URL de redefinição de senha com token.
      * @type {string}
@@ -71,19 +72,17 @@ class ResetPasswordJob {
     await Mail.send({
       to: email,
       subject: "Redefinição de senha",
-      html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #16a34a;">Redefinição de senha</h1>
-          <p>Você solicitou a redefinição de senha.</p>
-          <p>Clique no botão abaixo para criar uma nova senha:</p>
-          <a href="${url}"
-            style="display: inline-block; padding: 12px 24px; background: #3b82f6; color: #fff; border-radius: 8px; text-decoration: none;">
-            Redefinir senha
-          </a>
-          <p style="margin-top: 20px;">Ou copie o link:</p>
-          <p style="word-break: break-all; background: #f3f4f6; padding: 10px; border-radius: 6px;">${url}</p>
-        </div>
-      `,
+      html: emailTemplate({
+        title: "Redefinição de senha",
+        subtitle: "Recebemos uma solicitação para alterar sua senha.",
+        content: `
+          Caso tenha sido você, clique no botão abaixo.
+
+          Caso contrário, ignore este e-mail.
+        `,
+        buttonText: "Redefinir senha",
+        buttonLink: url,
+      }),
     });
   }
 }

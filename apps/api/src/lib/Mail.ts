@@ -12,7 +12,7 @@ import mailConfig from "../config/mail.js";
  * @class Mail
  * @description Gerencia o envio de emails utilizando a API do Resend.
  * Fornece uma interface simplificada para enviar emails HTML e texto.
- * 
+ *
  * @example
  * // Enviando um email
  * await Mail.send({
@@ -31,7 +31,7 @@ class Mail {
    * @constructor
    * @description Inicializa o cliente Resend com a API token do ambiente.
    * O token deve estar definido na variável MAIL_API_TOKEN no .env.
-   * 
+   *
    * @example
    * // .env
    * MAIL_API_TOKEN=re_abc123...
@@ -52,7 +52,7 @@ class Mail {
    * @returns {Promise<Object>} Resposta da API Resend
    * @description Envia um email utilizando a API do Resend.
    * O remetente é configurado no arquivo mail.config.ts.
-   * 
+   *
    * @example
    * // Enviar email simples
    * const response = await Mail.send({
@@ -62,7 +62,7 @@ class Mail {
    *   text: "Bem-vindo ao sistema!"
    * });
    * console.log("Email enviado:", response);
-   * 
+   *
    * @example
    * // Enviar com template HTML complexo
    * await Mail.send({

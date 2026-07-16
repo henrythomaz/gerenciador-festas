@@ -9,46 +9,38 @@ module.exports = {
         primaryKey: true,
         autoIncrement: true,
       },
-
-      nome: {
+      name: {
         type: Sequelize.STRING,
         allowNull: false,
       },
-
       email: {
         type: Sequelize.STRING,
         allowNull: false,
         unique: true,
       },
-
-      senha_hash: {
+      password_hash: {
         type: Sequelize.STRING,
         allowNull: false,
       },
-
-      email_confirmado: {
+      email_confirmed: {
         type: Sequelize.BOOLEAN,
         defaultValue: false,
       },
-
-      email_confirmacao_token: {
+      email_confirmation_token: {
         type: Sequelize.STRING,
         allowNull: true,
         unique: true,
       },
-
-      ultimo_login: {
+      last_login: {
         type: Sequelize.DATE,
         allowNull: true,
         defaultValue: null,
       },
-
-      criado_em: {
+      created_at: {
         type: Sequelize.DATE,
         allowNull: false,
       },
-
-      atualizado_em: {
+      updated_at: {
         type: Sequelize.DATE,
         allowNull: false,
       },
