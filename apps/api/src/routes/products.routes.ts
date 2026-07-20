@@ -154,16 +154,41 @@ routes.get("/produtos/:id", authMiddleware, produtos.show);
 routes.put("/produtos/:id", authMiddleware, produtos.update);
 
 /**
- * Rota para deletar um produto.
- * @route DELETE /produtos/:id
- * @description Remove um produto do sistema.
- * @security bearerAuth
- * @param {Object} req.params - Parâmetros da rota
- * @param {number} req.params.id - ID do produto
- * @returns {Object} Confirmação de exclusão
+ * @swagger
+ * /produtos/{id}:
+ *   delete:
+ *     summary: Deleta um produto e sua imagem associada
+ *     tags: [Produtos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID do produto a ser deletado
+ *     responses:
+ *       200:
+ *         description: Produto deletado com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Produto deletado com sucesso.
+ *       400:
+ *          description: Produto vinculado a contratos, não pode ser deletado
+ *       404:
+ *         description: Produto não encontrado
+ *       401:
+ *         description: Token ausente ou inválido
+ *       500:
+ *         description: Erro interno do servidor
  */
 routes.delete("/produtos/:id", authMiddleware, produtos.destroy);
-
 /**
  * Exporta o roteador de produtos.
  * @default

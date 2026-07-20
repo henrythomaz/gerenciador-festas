@@ -10,8 +10,8 @@ import File from "../models/File.js";
 import User from "../models/User.js";
 import Product from "../models/Product.js";
 
-import { fileURLToPath } from 'url';
-import { dirname, resolve } from 'path';
+import { fileURLToPath } from "url";
+import { dirname, resolve } from "path";
 
 // Obter __dirname em ES Modules
 const __filename = fileURLToPath(import.meta.url);
@@ -93,8 +93,8 @@ class FilesController {
     await Product.update({ file_id: null }, { where: { file_id: id } });
 
     // Caminho para a pasta uploads (sobe 2 níveis: controllers -> app -> src)
-    const uploadDir = resolve(__dirname, '..', '..', 'storage', 'uploads');
-    
+    const uploadDir = resolve(__dirname, "..", "..", "storage", "uploads");
+
     // 3. Remove o arquivo físico do disco
     const caminhoCompleto = resolve(uploadDir, arquivo.caminho);
 

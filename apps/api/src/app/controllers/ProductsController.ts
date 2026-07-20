@@ -7,6 +7,10 @@
 import { Request, Response } from "express";
 import { WhereOptions, Op } from "sequelize";
 import * as Yup from "yup";
+import { unlink } from "fs/promises";
+import { resolve } from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 
 import Product from "../models/Product.js";
 import ContractProduct from "../models/ContractProduct.js";
@@ -17,6 +21,9 @@ import ContractPdfService from "../../services/ContractPdfService.js";
 import likeFilter from "../utils/likeFilter.js";
 import dataInterval from "../utils/dataInterval.js";
 import ordenation from "../utils/ordenation.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 /**
  * Interface para parâmetros de rota com ID de produto.
@@ -317,7 +324,7 @@ class ProductsController {
   }
 
   /**
-   * Remove um produto.
+   * Remove um produto e sua imagem associada.
    * @method destroy
    * @async
    * @param {Request<ProdutoIdParam>} req
@@ -325,15 +332,47 @@ class ProductsController {
    * @returns {Promise<Response>}
    */
   async destroy(req: Request<ProdutoIdParam>, res: Response) {
-    const produto = await Product.findByPk(req.params.id);
+    const produto = await Product.findByPk(req.params.id, {
+      include: [{ model: File, as: "imagem" }],
+    });
 
     if (!produto) {
-      return res.status(404).json();
+      return res.status(404).json({ erro: "Produto não encontrado." });
     }
 
+    // Verifica se o produto está associado a algum contrato (via ContractProduct)
+    const contratosAssociados = await ContractProduct.count({
+      where: { produto_id: produto.id },
+    });
+
+    if (contratosAssociados > 0) {
+      return res.status(400).json({
+        erro: "Não é possível deletar o produto, pois ele está vinculado a um ou mais contratos.",
+      });
+    }
+
+    // Se o produto possui uma imagem associada
+    if (produto.file_id) {
+      const arquivo = produto.imagem;
+      if (arquivo) {
+        // Remove o arquivo físico do disco
+        const uploadDir = resolve(__dirname, "..", "..", "storage", "uploads");
+        const caminhoCompleto = resolve(uploadDir, arquivo.caminho);
+        try {
+          await unlink(caminhoCompleto);
+        } catch (err) {
+          console.warn(`Arquivo físico não encontrado: ${caminhoCompleto}`);
+        }
+
+        // Remove o registro da tabela files
+        await arquivo.destroy();
+      }
+    }
+
+    // Deleta o produto
     await produto.destroy();
 
-    return res.json();
+    return res.status(200).json({ message: "Produto deletado com sucesso." });
   }
 }
 
