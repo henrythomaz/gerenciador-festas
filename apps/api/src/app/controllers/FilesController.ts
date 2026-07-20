@@ -9,6 +9,9 @@ import path from "path";
 import File from "../models/File.js";
 import User from "../models/User.js";
 import Product from "../models/Product.js";
+import ContractProduct from "../models/ContractProduct.js";
+import Contract from "../models/Contract.js";
+import ContractPdfService from "../../services/ContractPdfService.js";
 
 import { fileURLToPath } from "url";
 import { dirname, resolve } from "path";
@@ -49,14 +52,13 @@ class FilesController {
       return res.status(404).json({ erro: "Arquivo não encontrado." });
     }
 
-    // Caminho completo do arquivo antigo (assumindo que os arquivos ficam em "uploads/")
-    const caminhoAntigo = path.resolve("uploads", arquivoExistente.caminho);
+    // Caminho completo do arquivo antigo
+    const uploadDir = resolve(__dirname, '..', '..', 'storage', 'uploads');
+    const caminhoAntigo = resolve(uploadDir, arquivoExistente.caminho);
 
     try {
-      // Remove o arquivo físico antigo
       await unlink(caminhoAntigo);
     } catch (err) {
-      // Se o arquivo não existir, apenas logamos e seguimos (não bloqueia a atualização)
       console.warn(`Arquivo antigo não encontrado: ${caminhoAntigo}`);
     }
 
@@ -65,6 +67,51 @@ class FilesController {
     arquivoExistente.nome = nome;
     arquivoExistente.caminho = caminho;
     await arquivoExistente.save();
+
+    // ===== NOVA LÓGICA: REGENERAR PDFs DOS CONTRATOS RELACIONADOS =====
+    try {
+      // 1. Busca produtos que usam este arquivo como imagem
+      const produtos = await Product.findAll({
+        where: { file_id: id },
+        attributes: ['id']
+      });
+
+      if (produtos.length > 0) {
+        const produtoIds = produtos.map(p => p.id);
+
+        // 2. Busca todos os itens de contrato que referenciam esses produtos
+        const itens = await ContractProduct.findAll({
+          where: { produto_id: produtoIds },
+          attributes: ['contrato_id'],
+          group: ['contrato_id']
+        });
+
+        // 3. Para cada contrato, verifica se possui PDF gerado e regenera
+        for (const item of itens) {
+          const contratoId = item.contrato_id;
+          const contrato = await Contract.findByPk(contratoId, {
+            attributes: ['id', 'pdf_filename']
+          });
+
+          // Só regenera se o contrato já tiver um PDF gerado (pdf_filename não nulo)
+          if (contrato && contrato.pdf_filename) {
+            try {
+              await ContractPdfService.regenerate(contratoId);
+              console.log(`[FilesController] PDF do contrato #${contratoId} regenerado após atualização da imagem.`);
+            } catch (pdfError: any) {
+              console.error(
+                `[FilesController] Erro ao regenerar PDF do contrato #${contratoId}:`,
+                pdfError.message
+              );
+              // Não interrompe o fluxo principal
+            }
+          }
+        }
+      }
+    } catch (error: any) {
+      console.error('[FilesController] Erro ao processar regeneração de PDFs:', error.message);
+      // Não interrompe a resposta, apenas loga o erro
+    }
 
     return res.status(200).json(arquivoExistente);
   }

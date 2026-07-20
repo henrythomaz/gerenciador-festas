@@ -61,7 +61,10 @@ routes.post("/files", upload.single("file"), filesController.create);
  * @swagger
  * /files/{id}:
  *   put:
- *     summary: Substitui um arquivo existente por um novo
+ *     summary: Substitui um arquivo existente por um novo e regenera PDFs de contratos associados
+ *     description: |
+ *       Atualiza a imagem de um produto (ou avatar) e, se o arquivo estiver vinculado a um produto que possui contratos com PDF gerado,
+ *       o sistema regenera automaticamente os PDFs desses contratos para refletir a nova imagem.
  *     tags: [Files]
  *     parameters:
  *       - in: path
@@ -80,10 +83,10 @@ routes.post("/files", upload.single("file"), filesController.create);
  *               file:
  *                 type: string
  *                 format: binary
- *                 description: Novo arquivo de imagem
+ *                 description: Novo arquivo de imagem (JPEG, PNG ou GIF)
  *     responses:
  *       200:
- *         description: Arquivo atualizado com sucesso
+ *         description: Arquivo atualizado com sucesso (PDFs regenerados se aplicável)
  *         content:
  *           application/json:
  *             schema:
@@ -99,6 +102,8 @@ routes.post("/files", upload.single("file"), filesController.create);
  *         description: Nenhum arquivo enviado
  *       404:
  *         description: Arquivo não encontrado
+ *       500:
+ *         description: Erro interno do servidor
  */
 routes.put("/files/:id", upload.single("file"), filesController.update);
 
