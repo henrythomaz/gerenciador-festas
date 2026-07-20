@@ -10,6 +10,13 @@ import File from "../models/File.js";
 import User from "../models/User.js";
 import Product from "../models/Product.js";
 
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
+
+// Obter __dirname em ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 class FilesController {
   // Método existente (create)...
   async create(req: Request, res: Response) {
@@ -85,14 +92,11 @@ class FilesController {
     // 2. Remove a referência em produtos que usam este arquivo como imagem
     await Product.update({ file_id: null }, { where: { file_id: id } });
 
+    // Caminho para a pasta uploads (sobe 2 níveis: controllers -> app -> src)
+    const uploadDir = resolve(__dirname, '..', '..', 'storage', 'uploads');
+    
     // 3. Remove o arquivo físico do disco
-    const caminhoCompleto = path.resolve(
-      __dirname,
-      "..",
-      "storage",
-      "uploads",
-      arquivo.caminho
-    );
+    const caminhoCompleto = resolve(uploadDir, arquivo.caminho);
 
     try {
       await unlink(caminhoCompleto);
