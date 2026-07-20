@@ -136,14 +136,54 @@ routes.post("/clientes", authMiddleware, clientes.create);
 routes.get("/clientes/:id", authMiddleware, clientes.show);
 
 /**
- * Rota para atualizar um cliente.
- * @route PUT /clientes/:id
- * @description Atualiza os dados de um cliente, com validação de unicidade.
- * @security bearerAuth
- * @param {Object} req.params - Parâmetros da rota
- * @param {number} req.params.id - ID do cliente
- * @param {Object} req.body - Dados para atualização
- * @returns {Object} Cliente atualizado
+ * @swagger
+ * /clientes/{id}:
+ *   put:
+ *     summary: Atualiza os dados de um cliente
+ *     tags: [Clientes]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID do cliente a ser atualizado
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nome:
+ *                 type: string
+ *               telefone:
+ *                 type: string
+ *               cpf:
+ *                 type: string
+ *                 pattern: '^\d{11}$'
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               status:
+ *                 type: string
+ *                 enum: [ACTIVE, ARCHIVED]
+ *                 description: |
+ *                   Para alterar para ARCHIVED, o cliente não pode ter contratos com status ACTIVE ou LATE.
+ *                   Caso contrário, a requisição retornará 409 Conflict.
+ *     responses:
+ *       200:
+ *         description: Cliente atualizado com sucesso
+ *       400:
+ *         description: Dados inválidos
+ *       404:
+ *         description: Cliente não encontrado
+ *       409:
+ *         description: Conflito – cliente possui contratos ativos e não pode ser arquivado
+ *       401:
+ *         description: Token ausente ou inválido
  */
 routes.put("/clientes/:id", authMiddleware, clientes.update);
 

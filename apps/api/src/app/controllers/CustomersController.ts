@@ -209,25 +209,15 @@ class CustomersController {
    * Atualiza os dados de um cliente.
    * @method update
    * @async
-   * @description Atualiza os campos permitidos, com verificações de unicidade.
-   * Após a atualização, regenera os PDFs de todos os contratos do cliente.
-   * @param {Request<ClienteIdParam>} req - Objeto de requisição Express com parâmetro ID
-   * @param {Response} res - Objeto de resposta Express
-   * @returns {Promise<Response>} Resposta JSON com dados atualizados
-   *
-   * @example
-   * // PUT /clientes/1
-   * // Request body
-   * {
-   *   "nome": "João Silva Santos",
-   *   "telefone": "(11) 98888-8888"
-   * }
+   * @param {Request<ClienteIdParam>} req
+   * @param {Response} res
+   * @returns {Promise<Response>}
    */
   async update(req: Request<ClienteIdParam>, res: Response) {
     const cliente = await Customer.findByPk(req.params.id);
 
     if (!cliente) {
-      return res.status(404).json();
+      return res.status(404).json({ erro: "Cliente não encontrado." });
     }
 
     const schema = Yup.object().shape({
@@ -242,6 +232,23 @@ class CustomersController {
       return res.status(400).json({ erro: "Erro ao validar schema." });
     }
 
+    // ===== NOVA VERIFICAÇÃO: impedir arquivamento se houver contratos ativos =====
+    if (req.body.status === "ARCHIVED" && cliente.status !== "ARCHIVED") {
+      const contratosAtivos = await Contract.count({
+        where: {
+          cliente_id: cliente.id,
+          status: { [Op.in]: ["ACTIVE", "LATE"] },
+        },
+      });
+
+      if (contratosAtivos > 0) {
+        return res.status(409).json({
+          erro: "Não é possível arquivar o cliente, pois ele possui contratos ativos ou em atraso.",
+        });
+      }
+    }
+
+    // Verificações de unicidade de CPF e email (já existentes)
     if (req.body.cpf && req.body.cpf !== cliente.cpf) {
       const cpfExiste = await Customer.findOne({
         where: { cpf: req.body.cpf },
@@ -264,9 +271,10 @@ class CustomersController {
       }
     }
 
+    // Atualiza o cliente
     const clienteAtualizado = await cliente.update(req.body);
 
-    // ===== REGENERA PDFs DE TODOS OS CONTRATOS DO CLIENTE =====
+    // Regenera PDFs dos contratos do cliente (se houver)
     const contratos = await Contract.findAll({
       where: { cliente_id: cliente.id },
     });
@@ -279,7 +287,6 @@ class CustomersController {
           `[CustomersController] Erro ao regenerar PDF do contrato #${contrato.id} após atualização do cliente #${cliente.id}:`,
           pdfError.message
         );
-        // Continua com os próximos contratos
       }
     }
 

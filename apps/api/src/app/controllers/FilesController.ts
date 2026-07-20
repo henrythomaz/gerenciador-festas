@@ -53,7 +53,7 @@ class FilesController {
     }
 
     // Caminho completo do arquivo antigo
-    const uploadDir = resolve(__dirname, '..', '..', 'storage', 'uploads');
+    const uploadDir = resolve(__dirname, "..", "..", "storage", "uploads");
     const caminhoAntigo = resolve(uploadDir, arquivoExistente.caminho);
 
     try {
@@ -73,31 +73,33 @@ class FilesController {
       // 1. Busca produtos que usam este arquivo como imagem
       const produtos = await Product.findAll({
         where: { file_id: id },
-        attributes: ['id']
+        attributes: ["id"],
       });
 
       if (produtos.length > 0) {
-        const produtoIds = produtos.map(p => p.id);
+        const produtoIds = produtos.map((p) => p.id);
 
         // 2. Busca todos os itens de contrato que referenciam esses produtos
         const itens = await ContractProduct.findAll({
           where: { produto_id: produtoIds },
-          attributes: ['contrato_id'],
-          group: ['contrato_id']
+          attributes: ["contrato_id"],
+          group: ["contrato_id"],
         });
 
         // 3. Para cada contrato, verifica se possui PDF gerado e regenera
         for (const item of itens) {
           const contratoId = item.contrato_id;
           const contrato = await Contract.findByPk(contratoId, {
-            attributes: ['id', 'pdf_filename']
+            attributes: ["id", "pdf_filename"],
           });
 
           // Só regenera se o contrato já tiver um PDF gerado (pdf_filename não nulo)
           if (contrato && contrato.pdf_filename) {
             try {
               await ContractPdfService.regenerate(contratoId);
-              console.log(`[FilesController] PDF do contrato #${contratoId} regenerado após atualização da imagem.`);
+              console.log(
+                `[FilesController] PDF do contrato #${contratoId} regenerado após atualização da imagem.`
+              );
             } catch (pdfError: any) {
               console.error(
                 `[FilesController] Erro ao regenerar PDF do contrato #${contratoId}:`,
@@ -109,7 +111,10 @@ class FilesController {
         }
       }
     } catch (error: any) {
-      console.error('[FilesController] Erro ao processar regeneração de PDFs:', error.message);
+      console.error(
+        "[FilesController] Erro ao processar regeneração de PDFs:",
+        error.message
+      );
       // Não interrompe a resposta, apenas loga o erro
     }
 
