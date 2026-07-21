@@ -7,6 +7,8 @@
 
 import { Sequelize, DataTypes, Model } from "sequelize";
 
+import File from "./File.js";
+
 /**
  * Interface que define os atributos do modelo Product.
  * @interface AtributosProduto
@@ -31,6 +33,7 @@ interface AtributosProduto {
  * @extends Model<AtributosProduto>
  */
 class Product extends Model<AtributosProduto> implements AtributosProduto {
+  declare imagem?: File | null;
   declare id?: number;
   declare usuario_id?: number;
   declare file_id?: number | null;

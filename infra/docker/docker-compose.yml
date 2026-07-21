@@ -1,139 +1,228 @@
 services:
+
   nginx:
     image: nginx
     container_name: nginx-load-balancer
+
     ports:
       - "80:80"
       - "443:443"
+
     volumes:
       - ../nginx/conf.d:/etc/nginx/conf.d
-      - ../nginx/html:/usr/share/nginx/html
+      # - ../nginx/html:/usr/share/nginx/html
       - ../nginx/logs:/var/log/nginx
+
     depends_on:
       - app
       - app2
+      - web
+
     networks:
       - app-network
+
+    restart: unless-stopped
+
+
+
+  web:
+    build:
+      context: ../..
+      dockerfile: Dockerfile.web
+
+    container_name: gf-web
+    
+    networks:
+      - app-network
+
     restart: unless-stopped
 
   app:
+    volumes:
+      - ./storage/contracts:/app/apps/api/src/storage/contracts
+
     build:
       context: ../..
       dockerfile: Dockerfile.api
+
     container_name: servidor-gf-1
-    volumes:
-      - ../../apps/api:/app/apps/api
+
     environment:
-      - NODE_ENV=development
-      - PORT=3000
-      - INSTANCE_ID=1
-      - REDIS_HOST=redis
-    command: yarn dev
+      NODE_ENV: development
+      PORT: 3000
+      INSTANCE_ID: 1
+      REDIS_HOST: redis
+
+    command: yarn workspace gf-servidor dev
+
     depends_on:
       db:
         condition: service_healthy
+
       redis:
         condition: service_healthy
+
     env_file:
       - ../../.env
+
     networks:
       - app-network
+
     restart: unless-stopped
 
+
+
   app2:
+    volumes:
+      - ./storage/contracts:/app/apps/api/src/storage/contracts
+
     build:
       context: ../..
       dockerfile: Dockerfile.api
+
     container_name: servidor-gf-2
-    volumes:
-      - ../../apps/api:/app/apps/api
+
     environment:
-      - NODE_ENV=development
-      - PORT=3000
-      - INSTANCE_ID=2
-      - REDIS_HOST=redis
-    command: yarn dev
+      NODE_ENV: development
+      PORT: 3000
+      INSTANCE_ID: 2
+      REDIS_HOST: redis
+
+    command: yarn workspace gf-servidor dev
+
     depends_on:
       db:
         condition: service_healthy
+
       redis:
         condition: service_healthy
+
     env_file:
       - ../../.env
+
     networks:
       - app-network
+
     restart: unless-stopped
+
+
 
   migrate:
     build:
       context: ../..
       dockerfile: Dockerfile.api
-    command: sh -c "until pg_isready -h db -p 5432 -U ${DB_USER}; do sleep 2; done && yarn migrate && yarn seed"
+
+    command: >
+      sh -c "
+      until pg_isready -h db -p 5432 -U ${DB_USER};
+      do sleep 2;
+      done &&
+      yarn workspace gf-servidor migrate &&
+      yarn workspace gf-servidor seed
+      "
+
     depends_on:
       db:
         condition: service_healthy
+
     env_file:
       - ../../.env
+
     networks:
       - app-network
+
+
 
   worker:
     build:
       context: ../..
       dockerfile: Dockerfile.api
+
     container_name: servidor-gf-worker
-    command: yarn queue
-    volumes:
-      - ../../apps/api:/app/apps/api
+
+    command: yarn workspace gf-servidor queue
+
     environment:
-      - NODE_ENV=development
-      - REDIS_HOST=redis
+      NODE_ENV: development
+      REDIS_HOST: redis
+
     depends_on:
       redis:
         condition: service_healthy
+
       db:
         condition: service_healthy
+
     env_file:
       - ../../.env
+
     networks:
       - app-network
+
     restart: unless-stopped
+
+
 
   db:
     image: postgres:16-alpine
+
     ports:
       - "5432:5432"
+
     environment:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
+
     volumes:
       - pgdata:/var/lib/postgresql/data
+
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DB_USER} -d ${DB_NAME}"
+        ]
       interval: 5s
       timeout: 5s
       retries: 5
+
     networks:
       - app-network
+
     restart: unless-stopped
+
+
 
   redis:
     image: redis:7-alpine
+
     ports:
       - "6379:6379"
+
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test:
+        [
+          "CMD",
+          "redis-cli",
+          "ping"
+        ]
       interval: 5s
       timeout: 3s
       retries: 5
+
     networks:
       - app-network
+
     restart: unless-stopped
+
+
 
 networks:
   app-network:
     driver: bridge
+
+
 
 volumes:
   pgdata:

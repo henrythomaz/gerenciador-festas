@@ -1,31 +1,33 @@
-import multer from "multer";
+import multer, { FileFilterCallback } from "multer";
 import crypto from "crypto";
 import { fileURLToPath } from "url";
 import { dirname, resolve, extname } from "path";
+import { Request } from "express";
 
-// Obter __filename e __dirname em ES modules
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename); // Pasta 'config'
+const __dirname = dirname(__filename);
 
 export default {
   storage: multer.diskStorage({
-    destination: resolve(__dirname, "..", "storage", "uploads"),
-    filename: (_req, file, callback) => {
+    destination: (req: Request, file: Express.Multer.File, cb) => {
+      cb(null, resolve(__dirname, "..", "storage", "uploads"));
+    },
+    filename: (req: Request, file: Express.Multer.File, cb) => {
       crypto.randomBytes(16, (err, res) => {
-        if (err) return callback(err);
-        return callback(null, res.toString("hex") + extname(file.originalname));
+        if (err) return cb(err, "");
+        return cb(null, res.toString("hex") + extname(file.originalname));
       });
     },
   }),
   limits: {
-    fileSize: 2 * 1024 * 1024, // 2MB
+    fileSize: 2 * 1024 * 1024,
   },
-  fileFilter: (_req, file, callback) => {
+  fileFilter: (req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
     const allowedMimes = ["image/jpeg", "image/png", "image/gif"];
     if (allowedMimes.includes(file.mimetype)) {
-      callback(null, true);
+      cb(null, true);
     } else {
-      callback(new Error("Tipo de arquivo não permitido."));
+      cb(new Error("Tipo de arquivo não permitido."));
     }
   },
 };

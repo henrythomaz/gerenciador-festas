@@ -7,11 +7,14 @@
 
 import { Sequelize, DataTypes, Model } from "sequelize";
 
+import type Product from "./Product.js";
+
 /**
  * Interface que define os atributos do modelo ContractProduct.
  * @interface AtributosItemContrato
  */
 interface AtributosItemContrato {
+  produto?: Product | null;
   id?: number;
   usuario_id?: number;
   contrato_id: number;
@@ -32,6 +35,7 @@ class ContractProduct
   extends Model<AtributosItemContrato>
   implements AtributosItemContrato
 {
+  declare produto?: Product | null;
   declare id?: number;
   declare usuario_id?: number;
   declare contrato_id: number;

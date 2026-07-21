@@ -64,6 +64,7 @@ interface AtributosUsuario {
  */
 class User extends Model<AtributosUsuario> implements AtributosUsuario {
   declare id?: number;
+  declare file_id?: number | null;
   declare nome: string;
   declare email: string;
   declare senha?: string;

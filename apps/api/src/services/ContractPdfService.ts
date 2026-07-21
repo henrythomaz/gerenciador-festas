@@ -142,23 +142,30 @@ class ContractPdfService {
     const page = await browser.newPage();
 
     // Define o conteúdo HTML
-    await page.setContent(html, { waitUntil: "networkidle0" });
+    await page.setContent(html, { waitUntil: "load" });
 
     // Gera o PDF
     const pdfFilename = `contrato-${contractId}-${Date.now()}.pdf`;
     const pdfPath = path.join(STORAGE_DIR, pdfFilename);
 
-    await page.pdf({
-      path: pdfPath,
-      format: "A4",
-      printBackground: true,
-      margin: {
-        top: "20mm",
-        bottom: "20mm",
-        left: "15mm",
-        right: "15mm",
-      },
-    });
+
+    try {
+      await page.pdf({
+        path: pdfPath,
+        format: "A4",
+        printBackground: true,
+        margin: {
+          top: "20mm",
+          bottom: "20mm",
+          left: "15mm",
+          right: "15mm",
+        },
+      });
+      
+} catch (error) {
+  console.error('[Puppeteer] Erro ao gerar PDF:', error);
+  throw error;
+}
 
     await browser.close();
 

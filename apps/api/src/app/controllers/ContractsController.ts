@@ -80,7 +80,7 @@ class ContractsController {
       const page = Number(query.page) || 1;
       const limit = Number(query.limit) || 25;
 
-      const where: WhereOptions = {};
+      const where: WhereOptions<any> = {};
       const and: any[] = [];
 
       and.push({ usuario_id: req.userId });
@@ -111,7 +111,9 @@ class ContractsController {
       );
       if (atualizado) and.push({ atualizado_em: atualizado });
 
-      if (and.length) where[Op.and] = and;
+      if (and.length) {
+        (where as any)[Op.and] = and;
+      }
 
       const contratos = await Contract.findAll({
         where,
@@ -126,9 +128,9 @@ class ContractsController {
     }
   }
 
-  async show(req: Request<ContratoIdParam>, res: Response) {
+  async show(req: Request, res: Response) {
     const contrato = await Contract.findOne({
-      where: { id: req.params.id, usuario_id: req.userId },
+      where: { id: req.params.id!, usuario_id: req.userId },
     });
     if (!contrato) return res.status(404).json();
     return res.json(contrato);
@@ -149,14 +151,24 @@ class ContractsController {
         observacoes: Yup.string().default(""),
       });
 
+      // Valida e converte as datas para objetos Date
       const validatedBody = await schema.validate(req.body, {
         stripUnknown: true,
+        abortEarly: false,
       });
-      const dadosContrato = { ...validatedBody, valor_total: 0 };
-      const novoContrato = await Contract.create({
-        ...dadosContrato,
+
+      // Apenas os campos permitidos, com datas já convertidas
+      const dadosContrato = {
+        cliente_id: validatedBody.cliente_id,
         usuario_id: req.userId,
-      });
+        data_inicio: validatedBody.data_inicio,
+        data_fim: validatedBody.data_fim,
+        status: validatedBody.status || "ACTIVE",
+        observacoes: validatedBody.observacoes || "",
+        valor_total: 0,
+      };
+
+      const novoContrato = await Contract.create(dadosContrato);
 
       // Atualiza status do cliente
       const cliente = await Customer.findByPk(novoContrato.cliente_id);
@@ -166,57 +178,100 @@ class ContractsController {
 
       return res.status(201).json(novoContrato);
     } catch (err: any) {
+      // Se for erro de validação do Yup, retorna mensagens detalhadas
+      if (err.name === "ValidationError") {
+        return res.status(400).json({ erro: err.errors });
+      }
       return res.status(400).json({ erro: err.message });
     }
   }
 
-  async update(req: Request<ContratoIdParam>, res: Response) {
+  async update(req: Request, res: Response) {
     const contrato = await Contract.findOne({
-      where: { id: req.params.id, usuario_id: req.userId },
+      where: { id: req.params.id!, usuario_id: req.userId },
     });
     if (!contrato) return res.status(404).json();
 
+    // Schema de validação com Yup
     const schema = Yup.object().shape({
       cliente_id: Yup.number().integer().positive(),
       usuario_id: Yup.number().integer().positive(),
-      data_inicio: Yup.date(),
-      data_fim: Yup.date().min(
-        Yup.ref("data_inicio"),
-        "Data fim deve ser após data início"
-      ),
+      data_inicio: Yup.date()
+        .nullable() // permite null/undefined
+        .transform((value, originalValue) => {
+          // Se for string vazia ou null, retorna undefined para não atualizar
+          if (originalValue === "" || originalValue === null || originalValue === undefined) {
+            return undefined;
+          }
+          // Tenta converter para Date
+          const date = new Date(originalValue);
+          return isNaN(date.getTime()) ? undefined : date;
+        }),
+      data_fim: Yup.date()
+        .nullable()
+        .transform((value, originalValue) => {
+          if (originalValue === "" || originalValue === null || originalValue === undefined) {
+            return undefined;
+          }
+          const date = new Date(originalValue);
+          return isNaN(date.getTime()) ? undefined : date;
+        })
+        .when("data_inicio", (dataInicio, schema) => {
+          return dataInicio
+            ? schema.min(dataInicio, "Data fim deve ser após data início")
+            : schema;
+        }),
       status: Yup.string().oneOf(["ACTIVE", "ARCHIVED", "CANCELED", "LATE"]),
-      valor_total: Yup.number().positive(),
-      observacoes: Yup.string(),
+      valor_total: Yup.number().positive().nullable(),
+      observacoes: Yup.string().nullable(),
     });
 
-    if (!(await schema.isValid(req.body))) {
-      return res.status(400).json({ erro: "Erro ao validar schema." });
-    }
+    try {
+      // Valida e converte os dados, removendo campos inválidos
+      const validatedBody = await schema.validate(req.body, {
+        stripUnknown: true,
+        abortEarly: false,
+      });
 
-    const novoStatus = req.body.status;
-    const statusAnterior = contrato.status;
-
-    if (
-      novoStatus &&
-      (novoStatus === "ARCHIVED" || novoStatus === "CANCELED") &&
-      statusAnterior !== novoStatus
-    ) {
-      // ... (bloco de finalização com transação – NÃO gera PDF)
-      const transaction = await Contract.sequelize!.transaction();
-      try {
-        await contrato.update({ status: novoStatus }, { transaction });
-        await this.finalizeContract(contrato.id!, transaction);
-        await transaction.commit();
-        return res.json({
-          message: `Contrato ${novoStatus} e finalizado com sucesso.`,
-        });
-      } catch (err: any) {
-        await transaction.rollback();
-        return res.status(500).json({ erro: err.message });
+      // Remove campos undefined (não serão atualizados)
+      const updateData: any = {};
+      for (const key of Object.keys(validatedBody)) {
+        const value = validatedBody[key];
+        if (value !== undefined) {
+          updateData[key] = value;
+        }
       }
-    } else {
+
+      // Se não há nada para atualizar, retorna o contrato atual
+      if (Object.keys(updateData).length === 0) {
+        return res.json(contrato);
+      }
+
+      const novoStatus = updateData.status;
+      const statusAnterior = contrato.status;
+
+      // Se estiver mudando para ARCHIVED ou CANCELED, executa a finalização
+      if (
+        novoStatus &&
+        (novoStatus === "ARCHIVED" || novoStatus === "CANCELED") &&
+        statusAnterior !== novoStatus
+      ) {
+        const transaction = await Contract.sequelize!.transaction();
+        try {
+          await contrato.update({ status: novoStatus }, { transaction });
+          await this.finalizeContract(contrato.id!, transaction);
+          await transaction.commit();
+          return res.json({
+            message: `Contrato ${novoStatus} e finalizado com sucesso.`,
+          });
+        } catch (err: any) {
+          await transaction.rollback();
+          return res.status(500).json({ erro: err.message });
+        }
+      }
+
       // Atualização normal (sem mudança para ARCHIVED/CANCELED)
-      const contratoAtualizado = await contrato.update(req.body);
+      const contratoAtualizado = await contrato.update(updateData);
 
       // Atualiza status do cliente conforme contratos ativos
       const contratosAtivosOuLate = await Contract.count({
@@ -232,7 +287,7 @@ class ContractsController {
         });
       }
 
-      // ===== NOVO: REGENERAR PDF APÓS ATUALIZAÇÃO =====
+      // Regenerar PDF APÓS atualização (se houver alterações que afetem o PDF)
       try {
         await ContractPdfService.regenerate(contratoAtualizado.id!);
       } catch (pdfError: any) {
@@ -244,12 +299,19 @@ class ContractsController {
       }
 
       return res.json(contratoAtualizado);
+    } catch (err: any) {
+      // Erro de validação do Yup
+      if (err.name === "ValidationError") {
+        return res.status(400).json({ erro: err.errors });
+      }
+      // Erro de banco ou outro
+      return res.status(400).json({ erro: err.message });
     }
   }
 
-  async destroy(req: Request<ContratoIdParam>, res: Response) {
+  async destroy(req: Request, res: Response) {
     const contrato = await Contract.findOne({
-      where: { id: req.params.id, usuario_id: req.userId },
+      where: { id: req.params.id!, usuario_id: req.userId },
     });
 
     if (!contrato) return res.status(404).json();
@@ -268,9 +330,9 @@ class ContractsController {
     }
   }
 
-  async cancel(req: Request<ContratoIdParam>, res: Response) {
+  async cancel(req: Request, res: Response) {
     const contrato = await Contract.findOne({
-      where: { id: req.params.id, usuario_id: req.userId },
+      where: { id: req.params.id!, usuario_id: req.userId },
     });
 
     if (!contrato) return res.status(404).json();
@@ -299,9 +361,9 @@ class ContractsController {
     }
   }
 
-  async archive(req: Request<ContratoIdParam>, res: Response) {
+  async archive(req: Request, res: Response) {
     const contrato = await Contract.findOne({
-      where: { id: req.params.id, usuario_id: req.userId },
+      where: { id: req.params.id!, usuario_id: req.userId },
     });
 
     if (!contrato) return res.status(404).json();
@@ -367,18 +429,16 @@ class ContractsController {
           }
 
           // Envia e-mail via fila
-          const baseUrl = process.env.APP_URL || "http://localhost:3000";
-          const frontendUrl =
-            process.env.FRONTEND_URL || "http://localhost:5173";
+          const baseUrl = process.env.APP_URL || "http://localhost";
 
           await Queue.add(ExpirationNotificationJob.key, {
             contratoId: contrato.id!,
             usuarioNome: usuario.nome || "Usuário",
             usuarioEmail: usuario.email,
             dataFim: contrato.data_fim,
-            cancelLink: `${frontendUrl}/contratos/${contrato.id}/cancelar`,
-            archiveLink: `${frontendUrl}/contratos/${contrato.id}/arquivar`,
-            keepLink: `${frontendUrl}/contratos/${contrato.id}/manter-late`,
+            cancelLink: `${baseUrl}/contratos/${contrato.id}/cancelar`,
+            archiveLink: `${baseUrl}/contratos/${contrato.id}/arquivar`,
+            keepLink: `${baseUrl}/contratos/${contrato.id}/manter-late`,
           });
 
           contratosProcessados++;
@@ -401,9 +461,9 @@ class ContractsController {
     }
   }
 
-  async keepLate(req: Request<ContratoIdParam>, res: Response) {
+  async keepLate(req: Request, res: Response) {
     const contrato = await Contract.findOne({
-      where: { id: req.params.id, usuario_id: req.userId },
+      where: { id: req.params.id!, usuario_id: req.userId },
     });
     if (!contrato) return res.status(404).json();
 
@@ -421,25 +481,22 @@ class ContractsController {
    * @method generatePdf
    * @route POST /contratos/:id/gerar-pdf
    */
-  async generatePdf(req: Request<ContratoIdParam>, res: Response) {
+  async generatePdf(req: Request, res: Response) {
     try {
       const contrato = await Contract.findOne({
-        where: { id: req.params.id, usuario_id: req.userId },
+        where: { id: req.params.id!, usuario_id: req.userId },
       });
 
       if (!contrato) {
         return res.status(404).json({ erro: "Contrato não encontrado." });
       }
 
-      // Se já existir PDF, podemos opcionalmente regenerar ou retornar o existente
-      // Aqui optamos por regenerar sempre
+      // Se já existir PDF, remove o arquivo antigo
       if (contrato.pdf_filename) {
-        // Remove o arquivo antigo
         await ContractPdfService.deletePdfFile(contrato);
       }
 
-      const { pdfFilename, pdfHash } =
-        await ContractPdfService.generate(contractId);
+      const { pdfFilename, pdfHash } = await ContractPdfService.generate(contrato.id!);
 
       return res.json({
         message: "PDF gerado com sucesso.",
@@ -456,10 +513,10 @@ class ContractsController {
    * @method downloadPdf
    * @route GET /contratos/:id/download
    */
-  async downloadPdf(req: Request<ContratoIdParam>, res: Response) {
+  async downloadPdf(req: Request, res: Response) {
     try {
       const contrato = await Contract.findOne({
-        where: { id: req.params.id, usuario_id: req.userId },
+        where: { id: req.params.id!, usuario_id: req.userId },
       });
 
       if (!contrato) {
@@ -491,10 +548,10 @@ class ContractsController {
    * @method regeneratePdf
    * @route POST /contratos/:id/regenerar-pdf
    */
-  async regeneratePdf(req: Request<ContratoIdParam>, res: Response) {
+  async regeneratePdf(req: Request, res: Response) {
     try {
       const { pdfFilename, pdfHash } = await ContractPdfService.regenerate(
-        Number(req.params.id)
+        Number(req.params.id!)
       );
 
       return res.json({

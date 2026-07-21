@@ -7,6 +7,9 @@
 
 import { Sequelize, DataTypes, Model } from "sequelize";
 
+import type Customer from "./Customer.js";
+import type User from "./User.js";
+
 /**
  * Interface que define os atributos do modelo Contract.
  * @interface AtributosContrato
@@ -65,6 +68,8 @@ interface AtributosContrato {
  * console.log(contratos[0].data_inicio);
  */
 class Contract extends Model<AtributosContrato> implements AtributosContrato {
+  declare cliente?: Customer | null;
+  declare usuario?: User | null;
   declare id?: number;
   declare cliente_id: number;
   declare usuario_id: number;

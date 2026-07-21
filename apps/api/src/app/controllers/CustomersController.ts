@@ -87,7 +87,7 @@ class CustomersController {
       const page = Number(query.page) || 1;
       const limit = Number(query.limit) || 25;
 
-      const where: WhereOptions = {};
+      const where: WhereOptions<any> = {};
       const and: any[] = [];
 
       and.push({ usuario_id: req.userId });
@@ -111,8 +111,8 @@ class CustomersController {
       if (atualizado) and.push({ atualizado_em: atualizado });
 
       if (and.length) {
-        where[Op.and] = and;
-      }
+    (where as any)[Op.and] = and;
+}
 
       const clientes = await Customer.findAll({
         where,
@@ -139,9 +139,9 @@ class CustomersController {
    * @example
    * // GET /clientes/1
    */
-  async show(req: Request<ClienteIdParam>, res: Response) {
+  async show(req: Request, res: Response) {
     const cliente = await Customer.findOne({
-      where: { id: req.params.id, usuario_id: req.userId },
+      where: { id: req.params.id!, usuario_id: req.userId },
     });
 
     if (!cliente) {
@@ -220,9 +220,9 @@ class CustomersController {
    * @param {Response} res
    * @returns {Promise<Response>}
    */
-  async update(req: Request<ClienteIdParam>, res: Response) {
+  async update(req: Request, res: Response) {
     const cliente = await Customer.findOne({
-      where: { id: req.params.id, usuario_id: req.userId },
+      where: { id: req.params.id!, usuario_id: req.userId },
     });
 
     if (!cliente) {
@@ -314,9 +314,9 @@ class CustomersController {
    * @example
    * // DELETE /clientes/1
    */
-  async destroy(req: Request<ClienteIdParam>, res: Response) {
+  async destroy(req: Request, res: Response) {
     const cliente = await Customer.findOne({
-      where: { id: req.params.id, usuario_id: req.userId },
+      where: { id: req.params.id!, usuario_id: req.userId },
     });
 
     if (!cliente) {

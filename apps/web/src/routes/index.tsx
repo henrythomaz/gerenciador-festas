@@ -37,7 +37,12 @@ function Feature({
 }
 
 function Index() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <div className="flex min-h-screen items-center justify-center">Carregando...</div>;
+  }
+
   return (
     <SiteLayout>
       {/* Hero */}

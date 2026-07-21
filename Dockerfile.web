@@ -1,0 +1,49 @@
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+RUN corepack enable
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+
+COPY package.json yarn.lock ./
+COPY .yarn ./.yarn
+COPY .yarnrc.yml ./
+
+COPY apps/api/package.json ./apps/api/package.json
+COPY apps/web/package.json ./apps/web/package.json
+
+RUN yarn install --immutable
+
+COPY . .
+
+WORKDIR /app/apps/web
+RUN yarn build
+
+# ----- Servidor Estático (nginx) -----
+FROM nginx:alpine
+
+# Copia a build SPA (dist)
+COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
+
+# Configuração do nginx com cache-control para index.html
+RUN echo 'server { \
+    listen 80; \
+    server_name localhost; \
+    root /usr/share/nginx/html; \
+    index index.html; \
+    client_max_body_size 50M; \
+    location / { \
+        try_files $uri $uri/ /index.html; \
+    } \
+    location /assets/ { \
+        expires 1y; \
+        add_header Cache-Control "public, immutable"; \
+    } \
+    location = /index.html { \
+        add_header Cache-Control "no-cache, no-store, must-revalidate"; \
+        add_header Pragma "no-cache"; \
+        add_header Expires "0"; \
+    } \
+}' > /etc/nginx/conf.d/default.conf
+
+EXPOSE 80

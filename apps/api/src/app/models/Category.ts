@@ -23,7 +23,7 @@ interface AtributosCategoria {
   criado_em?: Date;
   /** Data da última atualização do registro */
   atualizado_em?: Date;
-  user_id?: number;
+  usuario_id?: number;
 }
 
 /**
@@ -45,10 +45,10 @@ interface AtributosCategoria {
  */
 class Category extends Model<AtributosCategoria> implements AtributosCategoria {
   declare id?: number;
+  declare usuario_id?: number;
   declare nome: string;
   declare readonly criado_em: Date;
   declare readonly atualizado_em: Date;
-  declare usuario_id?: number;
 
   /**
    * Inicializa o modelo Category no Sequelize.

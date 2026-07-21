@@ -12,7 +12,7 @@ import { unlink } from "fs/promises";
 import { resolve } from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
-import { sequelize } from "../database/index.js";
+import database from "../../database/index.js";
 
 import User from "../models/User.js";
 import File from "../models/File.js";
@@ -30,6 +30,8 @@ import ConfirmEmailJob from "../jobs/ConfirmEmailJob.js";
 import likeFilter from "../utils/likeFilter.js";
 import dataInterval from "../utils/dataInterval.js";
 import ordenation from "../utils/ordenation.js";
+
+const sequelize = database.connection;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -113,7 +115,7 @@ class UsersController {
        * Construção da cláusula WHERE para filtros.
        * @type {WhereOptions}
        */
-      const where: WhereOptions = {};
+      const where: WhereOptions<any> = {};
       const and: any[] = [];
 
       // Aplica filtros LIKE para nome e email
@@ -131,8 +133,8 @@ class UsersController {
       if (atualizado) and.push({ atualizado_em: atualizado });
 
       if (and.length) {
-        where[Op.and] = and;
-      }
+    (where as any)[Op.and] = and;
+}
 
       /**
        * Busca os usuários com os filtros aplicados.
@@ -164,12 +166,12 @@ class UsersController {
    * @example
    * // GET /usuarios/1
    */
-  async show(req: Request<UsuarioIdParam>, res: Response) {
+  async show(req: Request, res: Response) {
     /**
      * Busca o usuário pelo ID.
      * @type {User|null}
      */
-    const usuario = await User.findByPk(req.params.id, {
+    const usuario = await User.findByPk(req.params.id!, {
       include: [
         { model: File, as: "avatar", attributes: ["id", "nome", "caminho"] },
       ],
@@ -285,12 +287,12 @@ class UsersController {
    *   "email": "novo@email.com"
    * }
    */
-  async update(req: Request<UsuarioIdParam>, res: Response) {
+  async update(req: Request, res: Response) {
     /**
      * Busca o usuário pelo ID.
      * @type {User|null}
      */
-    const usuario = await User.findByPk(req.params.id);
+    const usuario = await User.findByPk(req.params.id!);
 
     if (!usuario) {
       return res.status(404).json();
@@ -333,8 +335,8 @@ class UsersController {
    * @example
    * // DELETE /usuarios/1
    */
-  async destroy(req: Request<UsuarioIdParam>, res: Response) {
-    const userId = Number(req.params.id);
+  async destroy(req: Request, res: Response) {
+    const userId = Number(req.params.id!);
 
     // Verifica se o usuário logado é o mesmo que está sendo deletado
     if (userId !== req.userId) {
@@ -453,32 +455,25 @@ class UsersController {
    * // GET /confirmar-email?token=abc123...
    */
   async confirmarEmail(req: Request, res: Response) {
-    const { token } = req.query;
+    const token = req.query.token as string | undefined;
 
-    /**
-     * Busca o usuário pelo token de confirmação.
-     * @type {User|null}
-     */
+    if (!token) return res.redirect('/login?erro=token_invalido');
     const usuario = await User.findOne({
       where: { email_confirmacao_token: token },
     });
 
     if (!usuario) {
-      return res.status(400).json({ erro: "Token inválido" });
+      // Redireciona para a página de erro ou login com mensagem
+      return res.redirect("/login?erro=token_invalido");
     }
 
-    /**
-     * Atualiza o usuário confirmando o email e removendo o token.
-     */
     await usuario.update({
       email_confirmado: true,
       email_confirmacao_token: null,
     });
 
-    /**
-     * Redireciona para o frontend.
-     */
-    return res.redirect("http://localhost:5173/gerenciador-festas/#/login");
+    // Redireciona para a página de login com mensagem de sucesso
+    return res.redirect("/login?confirmado=true");
   }
 }
 

@@ -76,7 +76,7 @@ export default async (req: Request, res: Response, next: NextFunction) => {
      * Adiciona o ID do usuário à requisição.
      * @property {string} userId - ID do usuário autenticado
      */
-    req.userId = decoded.id;
+    req.userId = parseInt(decoded.id, 10);
     return next();
   } catch (err) {
     console.error(err);

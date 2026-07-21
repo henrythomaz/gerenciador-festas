@@ -5,7 +5,7 @@
  */
 
 import { Request, Response } from "express";
-import { WhereOptions, Op } from "sequelize";
+import { WhereOptions, Op, literal } from "sequelize";
 import * as Yup from "yup";
 import { unlink } from "fs/promises";
 import { resolve } from "path";
@@ -93,7 +93,7 @@ class ProductsController {
       const page = Number(query.page) || 1;
       const limit = Number(query.limit) || 25;
 
-      const where: WhereOptions = {};
+      const where: WhereOptions<any> = {};
       const and: any[] = [];
 
       and.push({ usuario_id: req.userId });
@@ -140,8 +140,8 @@ class ProductsController {
       if (atualizado) and.push({ atualizado_em: atualizado });
 
       if (and.length) {
-        where[Op.and] = and;
-      }
+    (where as any)[Op.and] = and;
+}
 
       const produtos = await Product.findAll({
         where,
@@ -164,9 +164,9 @@ class ProductsController {
    * @param {Response} res
    * @returns {Promise<Response>}
    */
-  async show(req: Request<ProdutoIdParam>, res: Response) {
+  async show(req: Request, res: Response) {
     const produto = await Product.findOne({
-      where: { id: req.params.id, usuario_id: req.userId },
+      where: { id: req.params.id!, usuario_id: req.userId },
       include: [
         { model: File, as: "imagem", attributes: ["id", "nome", "caminho"] },
       ],
@@ -224,9 +224,9 @@ class ProductsController {
    * @method update
    * @async
    */
-  async update(req: Request<ProdutoIdParam>, res: Response) {
+  async update(req: Request, res: Response) {
     const produto = await Product.findOne({
-      where: { id: req.params.id, usuario_id: req.userId },
+      where: { id: req.params.id!, usuario_id: req.userId },
     });
 
     if (!produto) {
@@ -285,7 +285,7 @@ class ProductsController {
         await ContractProduct.update(
           {
             preco_unitario: novoPreco,
-            subtotal: Product.sequelize!.literal(`quantity * ${novoPreco}`),
+            subtotal: literal(`quantity * ${novoPreco}`)
           },
           { where: { produto_id: produto.id }, transaction }
         );
@@ -339,9 +339,9 @@ class ProductsController {
    * @param {Response} res
    * @returns {Promise<Response>}
    */
-  async destroy(req: Request<ProdutoIdParam>, res: Response) {
+  async destroy(req: Request, res: Response) {
     const produto = await Product.findOne({
-      where: { id: req.params.id, usuario_id: req.userId },
+      where: { id: req.params.id!, usuario_id: req.userId },
       include: [{ model: File, as: "imagem" }],
     });
 

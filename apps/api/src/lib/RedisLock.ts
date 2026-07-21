@@ -11,7 +11,10 @@ export async function acquireLock(
   ttl: number = 60
 ): Promise<boolean> {
   // SET NX EX -> só define se não existir, com expiração
-  const result = await redis.set(key, "locked", "NX", "EX", ttl);
+  const result = await redis.set(key, "locked", {
+  NX: true,
+  EX: ttl,
+});
   return result === "OK";
 }
 

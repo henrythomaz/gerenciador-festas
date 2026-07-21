@@ -48,7 +48,10 @@ class Database {
      * Cria a conexão com o banco de dados.
      * @type {Sequelize}
      */
-    this.connection = new Sequelize(config);
+    this.connection = new Sequelize({
+      ...config,
+      dialect: config.dialect as any
+    });
 
     /**
      * Registra todos os modelos da aplicação.

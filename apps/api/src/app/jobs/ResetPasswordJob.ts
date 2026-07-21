@@ -64,7 +64,7 @@ class ResetPasswordJob {
      * URL de redefinição de senha com token.
      * @type {string}
      */
-    const url = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+    const url = `${process.env.APP_URL}/reset-password?token=${token}`;
 
     /**
      * Envia o email de redefinição de senha.

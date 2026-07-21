@@ -10,7 +10,8 @@ import * as Yup from "yup";
 
 import ContractProduct from "../models/ContractProduct.js";
 import Product from "../models/Product.js";
-import Client from "../models/Client.js";
+import Customer from "../models/Customer.js";
+import Contract from "../models/Contract.js";
 import ContractPdfService from "../../services/ContractPdfService.js";
 
 // Utils
@@ -75,7 +76,7 @@ class ContractsProductsController {
       const page = Number(query.page) || 1;
       const limit = Number(query.limit) || 25;
 
-      const where: WhereOptions = {};
+      const where: WhereOptions<any> = {};
       const and: any[] = [];
 
       and.push({ usuario_id: req.userId });
@@ -97,8 +98,8 @@ class ContractsProductsController {
       if (atualizado) and.push({ atualizado_em: atualizado });
 
       if (and.length) {
-        where[Op.and] = and;
-      }
+    (where as any)[Op.and] = and;
+}
 
       const itens = await ContractProduct.findAll({
         where,
@@ -121,9 +122,9 @@ class ContractsProductsController {
    * @param {Response} res
    * @returns {Promise<Response>}
    */
-  async show(req: Request<ItemContratoIdParam>, res: Response) {
+  async show(req: Request, res: Response) {
     const item = await ContractProduct.findOne({
-      where: { id: req.params.id, user_id: req.userId },
+      where: { id: req.params.id!, usuario_id: req.userId },
     });
 
     if (!item) {
@@ -178,7 +179,7 @@ class ContractsProductsController {
       // Cria o item de contrato
       const novoItem = await ContractProduct.create(
         {
-          user_id: req.userId,
+          usuario_id: req.userId,
           contrato_id: body.contrato_id,
           produto_id: body.produto_id,
           quantidade: body.quantidade,
@@ -231,9 +232,9 @@ class ContractsProductsController {
    * @param {Response} res
    * @returns {Promise<Response>}
    */
-  async update(req: Request<ItemContratoIdParam>, res: Response) {
+  async update(req: Request, res: Response) {
     const item = await ContractProduct.findOne({
-      where: { id: req.params.id, user_id: req.userId },
+      where: { id: req.params.id!, usuario_id: req.userId },
     });
     if (!item) {
       return res.status(404).json();
@@ -320,9 +321,9 @@ class ContractsProductsController {
    * @param {Response} res
    * @returns {Promise<Response>}
    */
-  async destroy(req: Request<ItemContratoIdParam>, res: Response) {
+  async destroy(req: Request, res: Response) {
     const item = await ContractProduct.findOne({
-      where: { id: req.params.id, user_id: req.userId },
+      where: { id: req.params.id!, usuario_id: req.userId },
     });
     if (!item) {
       return res.status(404).json();
@@ -333,9 +334,14 @@ class ContractsProductsController {
       return res.status(404).json({ erro: "Produto não encontrado." });
     }
 
-    const cliente = await Product.findByPk(item.cliente_id);
+    const contrato = await Contract.findByPk(item.contrato_id);
+    if (!contrato) {
+      return res.status(404).json({ erro: "Contrato não encontrado." });
+    }
+
+    const cliente = await Customer.findByPk(contrato.cliente_id);
     if (!cliente) {
-      return res.status(404).json({ erro: "Cliente não encontrado." });
+      return res.status(404).json({ erro: "Contrato não encontrado." });
     }
 
     const transaction = await ContractProduct.sequelize!.transaction();

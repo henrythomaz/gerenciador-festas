@@ -15,6 +15,8 @@ import WelcomeToBackJob from "../app/jobs/WelcomeToBackJob.js";
 import ConfirmEmailJob from "../app/jobs/ConfirmEmailJob.js";
 import ExpirationNotificationJob from "../app/jobs/ExpirationNotificationJob.js";
 
+import type { Job } from "bee-queue";
+
 /**
  * Lista de todos os jobs disponíveis na aplicação.
  * @constant jobs
@@ -50,7 +52,7 @@ const jobs = [
  */
 class Queue {
   /** Armazena todas as filas configuradas */
-  private queues: { [key: string]: { bee: Bee; handle: Function } };
+  private queues: { [key: string]: { bee: Bee; handle: (job: Job<any>) => Promise<any>; }; };
 
   /**
    * Construtor da classe Queue.
@@ -97,7 +99,7 @@ class Queue {
    *   token: "abc123"
    * });
    */
-  add(queue, job) {
+  add(queue: string, job: any) {
     return this.queues[queue].bee.createJob(job).save();
   }
 

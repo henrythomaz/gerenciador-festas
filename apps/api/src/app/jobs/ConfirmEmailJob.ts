@@ -67,7 +67,7 @@ class ConfirmEmailJob {
      * URL de confirmação com token.
      * @type {string}
      */
-    const link = `${process.env.FRONT_URL}/confirmar-email?token=${token}`;
+    const link = `${process.env.APP_URL}/confirmar-email?token=${token}`;
 
     /**
      * Envia o email de confirmação.
@@ -75,9 +75,6 @@ class ConfirmEmailJob {
     await Mail.send({
       to: email,
       subject: "Confirme seu e-mail",
-      headers: {
-        "ngrok-skip-browser-warning": "3000",
-      },
       html: emailTemplate({
         title: `Olá ${nome}!`,
         subtitle: "Falta apenas um passo.",

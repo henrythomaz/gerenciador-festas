@@ -17,43 +17,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const session = getSession();
-    if (session.token && session.user) {
-      setToken(session.token);
-      // Define o usuário básico primeiro
-      setUser(session.user);
-      // Busca o perfil completo para obter o avatar
-      fetchUserProfile(session.user.id)
-        .then(fullUser => {
+    async function loadSession() {
+      const session = getSession();
+      if (session.token && session.user) {
+        setToken(session.token);
+        setUser(session.user);
+        try {
+          const fullUser = await fetchUserProfile(session.user.id);
           setUser(fullUser);
-          // Atualiza o localStorage com o perfil completo (opcional)
-          setSession(session.token!, fullUser);
-        })
-        .catch(err => {
-          console.error("Erro ao buscar perfil do usuário:", err);
-          // Em caso de erro, mantém o usuário básico
-        })
-        .finally(() => setIsLoading(false));
-    } else {
+          setSession(session.token, fullUser);
+        } catch (err) {
+          console.error("Erro ao buscar perfil:", err);
+        }
+      }
       setIsLoading(false);
     }
+    loadSession();
   }, []);
 
-  const login = (newToken: string, newUser: AuthUser) => {
+  const login = async (newToken: string, newUser: AuthUser) => {
     setSession(newToken, newUser);
     setToken(newToken);
     setUser(newUser);
-    // Busca o perfil completo após login
-    fetchUserProfile(newUser.id)
-      .then(fullUser => {
-        setUser(fullUser);
-        // Atualiza o localStorage com o perfil completo
-        setSession(newToken, fullUser);
-      })
-      .catch(err => {
-        console.error("Erro ao buscar perfil após login:", err);
-        // Mantém o usuário básico
-      });
+    try {
+      const fullUser = await fetchUserProfile(newUser.id);
+      setUser(fullUser);
+      setSession(newToken, fullUser);
+    } catch (err) {
+      console.error("Erro ao buscar perfil após login:", err);
+    }
   };
 
   const logout = () => {
@@ -69,10 +61,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useAuth() {
+// Hook seguro – NUNCA lança erro
+export function useSafeAuth(): AuthContextType {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    // Retorna um objeto vazio sem quebrar
+    return {
+      user: null,
+      token: null,
+      login: () => {},
+      logout: () => {},
+      isLoading: false,
+    };
   }
   return context;
+}
+
+// Mantido para compatibilidade (mas não recomendado)
+export function useAuth(): AuthContextType {
+  return useSafeAuth();
 }

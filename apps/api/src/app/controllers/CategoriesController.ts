@@ -92,10 +92,10 @@ class CategoriesController {
        * Construção da cláusula WHERE para filtros.
        * @type {WhereOptions}
        */
-      const where: WhereOptions = {};
+      const where: WhereOptions<any> = {};
       const and: any[] = [];
 
-      and.push({ user_id: req.userId });
+      and.push({ usuario_id: req.userId });
 
       // Aplica filtros LIKE para nome
       likeFilter(and, "nome", query.nome);
@@ -111,8 +111,8 @@ class CategoriesController {
       if (atualizado) and.push({ atualizado_em: atualizado });
 
       if (and.length) {
-        where[Op.and] = and;
-      }
+    (where as any)[Op.and] = and;
+}
 
       /**
        * Busca as categorias com os filtros aplicados.
@@ -143,13 +143,13 @@ class CategoriesController {
    * @example
    * // GET /categorias/1
    */
-  async show(req: Request<CategoriaIdParam>, res: Response) {
+  async show(req: Request, res: Response) {
     /**
      * Busca a categoria pelo ID.
      * @type {Category|null}
      */
     const categoria = await Category.findOne({
-      where: { id: req.params.id, user_id: req.userId },
+      where: { id: req.params.id!, usuario_id: req.userId },
     });
 
     if (!categoria) {
@@ -196,7 +196,7 @@ class CategoriesController {
      */
     const novaCategoria = await Category.create({
       ...body,
-      user_id: req.userId,
+      usuario_id: req.userId,
     });
 
     return res.status(201).json(novaCategoria);
@@ -218,13 +218,13 @@ class CategoriesController {
    *   "nome": "Decoração de Luxo"
    * }
    */
-  async update(req: Request<CategoriaIdParam>, res: Response) {
+  async update(req: Request, res: Response) {
     /**
      * Busca a categoria pelo ID.
      * @type {Category|null}
      */
     const categoria = await Category.findOne({
-      where: { id: req.params.id, user_id: req.userId },
+      where: { id: req.params.id!, usuario_id: req.userId },
     });
 
     if (!categoria) {
@@ -264,13 +264,13 @@ class CategoriesController {
    * @example
    * // DELETE /categorias/1
    */
-  async destroy(req: Request<CategoriaIdParam>, res: Response) {
+  async destroy(req: Request, res: Response) {
     /**
      * Busca a categoria pelo ID.
      * @type {Category|null}
      */
     const categoria = await Category.findOne({
-      where: { id: req.params.id, user_id: req.userId },
+      where: { id: req.params.id!, usuario_id: req.userId },
     });
 
     if (!categoria) {

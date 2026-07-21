@@ -47,7 +47,7 @@ class FilesController {
     }
 
     // Busca o arquivo no banco
-    const arquivoExistente = await File.findByPk(id);
+    const arquivoExistente = await File.findByPk(Number(id));
     if (!arquivoExistente) {
       return res.status(404).json({ erro: "Arquivo não encontrado." });
     }
@@ -76,8 +76,8 @@ class FilesController {
         attributes: ["id"],
       });
 
+      const produtoIds = produtos.map(p => p.id).filter((id): id is number => id !== undefined);
       if (produtos.length > 0) {
-        const produtoIds = produtos.map((p) => p.id);
 
         // 2. Busca todos os itens de contrato que referenciam esses produtos
         const itens = await ContractProduct.findAll({
@@ -130,7 +130,7 @@ class FilesController {
    * @returns {Promise<Response>}
    */
   async destroy(req: Request, res: Response) {
-    const { id } = req.params;
+    const id = Number(req.params.id);
 
     // Busca o arquivo no banco
     const arquivo = await File.findByPk(id);

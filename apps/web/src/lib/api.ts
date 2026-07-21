@@ -1,8 +1,4 @@
-const DEFAULT_BASE = "https://suspensive-scarabaeoid-pattie.ngrok-free.dev";
-
-export const API_BASE_URL =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, "") ||
-  DEFAULT_BASE;
+export const API_BASE_URL = "api";
 
 export const TOKEN_KEY = "gf.token";
 export const USER_KEY = "gf.user";
@@ -112,20 +108,21 @@ export async function api<T = unknown>(path: string, options: ApiOptions = {}): 
 }
 
 export async function fetchUserProfile(userId: number): Promise<AuthUser> {
-  // A requisição retorna o objeto completo com avatar como objeto ou null
-  const data = await api<any>(`/usuarios/${userId}`, { auth: true });
-
-  // Constrói a URL do avatar se existir
-  let avatarUrl: string | null = null;
-  if (data.avatar && typeof data.avatar === 'object' && data.avatar.caminho) {
-    avatarUrl = `${API_BASE_URL}/files/${data.avatar.caminho}`;
+  try {
+    const data = await api<any>(`/usuarios/${userId}`, { auth: true });
+    let avatarUrl: string | null = null;
+    if (data.avatar && typeof data.avatar === 'object' && data.avatar.caminho) {
+      avatarUrl = `${API_BASE_URL}/files/${data.avatar.caminho}`;
+    }
+    return {
+      id: data.id,
+      nome: data.nome,
+      email: data.email,
+      avatar: avatarUrl,
+    };
+  } catch (error) {
+    console.error('Erro ao buscar perfil do usuário:', error);
+    // Retorna um objeto com dados mínimos (se possível) ou relança
+    throw error; // Mantém o comportamento de lançar para ser capturado no AuthProvider
   }
-
-  // Retorna um objeto que se encaixa em AuthUser
-  return {
-    id: data.id,
-    nome: data.nome,
-    email: data.email,
-    avatar: avatarUrl,
-  };
 }

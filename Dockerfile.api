@@ -1,3 +1,32 @@
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+RUN corepack enable
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+
+COPY package.json yarn.lock ./
+COPY .yarn ./.yarn
+COPY .yarnrc.yml ./
+
+COPY apps/api/package.json ./apps/api/package.json
+COPY apps/web/package.json ./apps/web/package.json
+
+RUN yarn install --immutable
+
+COPY . .
+
+# Build do frontend
+WORKDIR /app/apps/web
+RUN yarn build
+
+# Build da API
+WORKDIR /app/apps/api
+RUN yarn build
+
+
+# -------------------------------------------------
+
 FROM node:20-alpine
 
 WORKDIR /app
@@ -5,7 +34,6 @@ WORKDIR /app
 RUN corepack enable
 ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 
-# Chromium + PostgreSQL client (necessários para puppeteer e migrações)
 RUN apk add --no-cache \
     postgresql-client \
     chromium \
@@ -13,27 +41,20 @@ RUN apk add --no-cache \
     freetype \
     harfbuzz \
     ca-certificates \
-    ttf-freefont \
-    && rm -rf /var/cache/apk/*
+    ttf-freefont
 
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
-# Copiar arquivos essenciais para instalação
-COPY package.json yarn.lock ./
-COPY .yarn ./.yarn
-COPY .yarnrc.yml ./
-COPY apps/api/package.json ./apps/api/package.json
-COPY apps/web/package.json ./apps/web/package.json
+COPY --from=builder /app/package.json .
+COPY --from=builder /app/yarn.lock .
+COPY --from=builder /app/.yarn ./.yarn
+COPY --from=builder /app/.yarnrc.yml ./
 
-# Instalar Yarn (já definido no packageManager)
-RUN corepack install -g yarn@4.13.0
+COPY --from=builder /app/node_modules ./node_modules
 
-# Instalar todas as dependências (incluindo as dos workspaces) e depois focar apenas na API
-RUN yarn install --immutable && yarn workspaces focus gf-servidor
-
-# Copiar o restante do código
-COPY . .
-
-WORKDIR /app/apps/api
+COPY --from=builder /app/apps/api ./apps/api
+COPY --from=builder /app/apps/web/.output/public ./public
 
 EXPOSE 3000
+
+CMD ["yarn","workspace","gf-servidor","start"]
