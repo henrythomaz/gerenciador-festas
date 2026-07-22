@@ -77,7 +77,17 @@ class Mail {
    *   text: `Redefina sua senha: ${link}`
    * });
    */
-  async send({ to, subject, html, text }: {to: string; subject: string; html: string; text?: string}) {
+  async send({
+    to,
+    subject,
+    html,
+    text,
+  }: {
+    to: string;
+    subject: string;
+    html: string;
+    text?: string;
+  }) {
     /**
      * Envia o email via Resend API.
      * @type {Object} response - Resposta da API

@@ -51,67 +51,40 @@ class SessionsController {
   async create(req: Request, res: Response) {
     const { email, senha } = req.body;
 
-    /**
-     * Busca o usuário pelo email.
-     * @type {User|null}
-     */
     const usuario = await User.findOne({ where: { email } });
-
     if (!usuario) {
       return res.status(404).json({ erro: "Usuário não encontrado." });
     }
 
-    /**
-     * Verifica se a senha está correta.
-     */
     if (!(await usuario.checkPassword(senha))) {
       return res.status(401).json({ erro: "Senha incorreta." });
     }
 
-    /**
-     * Verifica se o email foi confirmado.
-     * @note O campo 'email_confirmado' está em português na API
-     */
+    // 🔹 Mensagem específica para e-mail não confirmado
     if (!usuario.email_confirmado) {
       return res.status(401).json({
-        erro: "Confirme seu email antes de acessar.",
+        erro: "Confirme o seu e-mail antes de realizar o login.",
       });
     }
 
     const { id, nome, email: userEmail } = usuario;
 
-    /**
-     * Verifica se já passou 7 dias desde o último login.
-     * @type {Date}
-     */
-    const seteDiasAtras = new Date();
-    seteDiasAtras.setDate(seteDiasAtras.getDate() - 7);
-
-    /**
-     * Se não houver registro de ultimo_login ou se for há mais de 7 dias,
-     * envia email de boas-vindas de volta.
-     * @note O campo 'ultimo_login' está em português na API
-     */
-    if (
-      !usuario.ultimo_login ||
-      new Date(usuario.ultimo_login) < seteDiasAtras
-    ) {
-      await Queue.add(WelcomeToBackJob.key, {
-        nome,
-        email: userEmail,
-      });
+    // 🔹 Verifica se é o primeiro acesso (ultimo_login == null)
+    if (!usuario.ultimo_login) {
+      // Envia o e-mail de boas-vindas no primeiro login (após confirmação)
+      await Queue.add(WelcomeEmailJob.key, { nome, email: userEmail });
+    } else {
+      // Se não for primeiro acesso, verifica se passaram mais de 7 dias
+      const seteDiasAtras = new Date();
+      seteDiasAtras.setDate(seteDiasAtras.getDate() - 7);
+      if (new Date(usuario.ultimo_login) < seteDiasAtras) {
+        await Queue.add(WelcomeToBackJob.key, { nome, email: userEmail });
+      }
     }
 
-    /**
-     * Atualiza a data do último login.
-     * @note O campo 'ultimo_login' está em português na API
-     */
+    // Atualiza último login
     await usuario.update({ ultimo_login: new Date() });
 
-    /**
-     * Gera token JWT para autenticação.
-     * @type {string}
-     */
     const token = jwt.sign({ id }, auth.secret, {
       expiresIn: auth.expiresIn,
     } as SignOptions);

@@ -50,7 +50,7 @@ class Database {
      */
     this.connection = new Sequelize({
       ...config,
-      dialect: config.dialect as any
+      dialect: config.dialect as any,
     });
 
     /**

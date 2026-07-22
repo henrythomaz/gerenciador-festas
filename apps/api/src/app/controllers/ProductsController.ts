@@ -140,8 +140,8 @@ class ProductsController {
       if (atualizado) and.push({ atualizado_em: atualizado });
 
       if (and.length) {
-    (where as any)[Op.and] = and;
-}
+        (where as any)[Op.and] = and;
+      }
 
       const produtos = await Product.findAll({
         where,
@@ -285,7 +285,7 @@ class ProductsController {
         await ContractProduct.update(
           {
             preco_unitario: novoPreco,
-            subtotal: literal(`quantity * ${novoPreco}`)
+            subtotal: literal(`quantity * ${novoPreco}`),
           },
           { where: { produto_id: produto.id }, transaction }
         );

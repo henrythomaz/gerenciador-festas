@@ -111,8 +111,8 @@ class CustomersController {
       if (atualizado) and.push({ atualizado_em: atualizado });
 
       if (and.length) {
-    (where as any)[Op.and] = and;
-}
+        (where as any)[Op.and] = and;
+      }
 
       const clientes = await Customer.findAll({
         where,

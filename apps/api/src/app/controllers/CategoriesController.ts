@@ -111,8 +111,8 @@ class CategoriesController {
       if (atualizado) and.push({ atualizado_em: atualizado });
 
       if (and.length) {
-    (where as any)[Op.and] = and;
-}
+        (where as any)[Op.and] = and;
+      }
 
       /**
        * Busca as categorias com os filtros aplicados.

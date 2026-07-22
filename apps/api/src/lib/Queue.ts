@@ -52,7 +52,9 @@ const jobs = [
  */
 class Queue {
   /** Armazena todas as filas configuradas */
-  private queues: { [key: string]: { bee: Bee; handle: (job: Job<any>) => Promise<any>; }; };
+  private queues: {
+    [key: string]: { bee: Bee; handle: (job: Job<any>) => Promise<any> };
+  };
 
   /**
    * Construtor da classe Queue.

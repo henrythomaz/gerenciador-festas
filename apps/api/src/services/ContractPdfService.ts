@@ -148,7 +148,6 @@ class ContractPdfService {
     const pdfFilename = `contrato-${contractId}-${Date.now()}.pdf`;
     const pdfPath = path.join(STORAGE_DIR, pdfFilename);
 
-
     try {
       await page.pdf({
         path: pdfPath,
@@ -161,11 +160,10 @@ class ContractPdfService {
           right: "15mm",
         },
       });
-      
-} catch (error) {
-  console.error('[Puppeteer] Erro ao gerar PDF:', error);
-  throw error;
-}
+    } catch (error) {
+      console.error("[Puppeteer] Erro ao gerar PDF:", error);
+      throw error;
+    }
 
     await browser.close();
 

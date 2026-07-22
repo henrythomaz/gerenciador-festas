@@ -76,9 +76,10 @@ class FilesController {
         attributes: ["id"],
       });
 
-      const produtoIds = produtos.map(p => p.id).filter((id): id is number => id !== undefined);
+      const produtoIds = produtos
+        .map((p) => p.id)
+        .filter((id): id is number => id !== undefined);
       if (produtos.length > 0) {
-
         // 2. Busca todos os itens de contrato que referenciam esses produtos
         const itens = await ContractProduct.findAll({
           where: { produto_id: produtoIds },

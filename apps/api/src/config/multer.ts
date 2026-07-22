@@ -22,7 +22,11 @@ export default {
   limits: {
     fileSize: 2 * 1024 * 1024,
   },
-  fileFilter: (req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
+  fileFilter: (
+    req: Request,
+    file: Express.Multer.File,
+    cb: FileFilterCallback
+  ) => {
     const allowedMimes = ["image/jpeg", "image/png", "image/gif"];
     if (allowedMimes.includes(file.mimetype)) {
       cb(null, true);

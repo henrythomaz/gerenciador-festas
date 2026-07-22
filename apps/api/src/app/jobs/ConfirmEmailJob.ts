@@ -82,19 +82,6 @@ class ConfirmEmailJob {
           Clique no botão abaixo para confirmar seu endereço de e-mail.
 
           <br><br>
-
-          Caso o botão não funcione:
-
-          <br><br>
-
-          <div style="
-          background:#F1F5F9;
-          padding:15px;
-          border-radius:10px;
-          word-break:break-all;
-          ">
-            ${link}
-          </div>
         `,
         buttonText: "Confirmar e-mail",
         buttonLink: link,

@@ -200,7 +200,11 @@ class ContractsController {
         .nullable() // permite null/undefined
         .transform((value, originalValue) => {
           // Se for string vazia ou null, retorna undefined para não atualizar
-          if (originalValue === "" || originalValue === null || originalValue === undefined) {
+          if (
+            originalValue === "" ||
+            originalValue === null ||
+            originalValue === undefined
+          ) {
             return undefined;
           }
           // Tenta converter para Date
@@ -210,7 +214,11 @@ class ContractsController {
       data_fim: Yup.date()
         .nullable()
         .transform((value, originalValue) => {
-          if (originalValue === "" || originalValue === null || originalValue === undefined) {
+          if (
+            originalValue === "" ||
+            originalValue === null ||
+            originalValue === undefined
+          ) {
             return undefined;
           }
           const date = new Date(originalValue);
@@ -496,7 +504,9 @@ class ContractsController {
         await ContractPdfService.deletePdfFile(contrato);
       }
 
-      const { pdfFilename, pdfHash } = await ContractPdfService.generate(contrato.id!);
+      const { pdfFilename, pdfHash } = await ContractPdfService.generate(
+        contrato.id!
+      );
 
       return res.json({
         message: "PDF gerado com sucesso.",

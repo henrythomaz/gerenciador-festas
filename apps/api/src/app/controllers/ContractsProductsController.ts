@@ -98,8 +98,8 @@ class ContractsProductsController {
       if (atualizado) and.push({ atualizado_em: atualizado });
 
       if (and.length) {
-    (where as any)[Op.and] = and;
-}
+        (where as any)[Op.and] = and;
+      }
 
       const itens = await ContractProduct.findAll({
         where,

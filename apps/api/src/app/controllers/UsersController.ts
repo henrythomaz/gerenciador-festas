@@ -23,7 +23,6 @@ import Customer from "../models/Customer.js";
 import Category from "../models/Category.js";
 
 import Queue from "../../lib/Queue.js";
-import WelcomeEmailJob from "../jobs/WelcomeEmailJob.js";
 import ConfirmEmailJob from "../jobs/ConfirmEmailJob.js";
 
 // Utils
@@ -133,8 +132,8 @@ class UsersController {
       if (atualizado) and.push({ atualizado_em: atualizado });
 
       if (and.length) {
-    (where as any)[Op.and] = and;
-}
+        (where as any)[Op.and] = and;
+      }
 
       /**
        * Busca os usuários com os filtros aplicados.
@@ -264,8 +263,6 @@ class UsersController {
       email,
       token,
     });
-
-    await Queue.add(WelcomeEmailJob.key, { nome, email });
 
     return res.status(201).json({ id, nome, email, file_id });
   }
@@ -457,7 +454,7 @@ class UsersController {
   async confirmarEmail(req: Request, res: Response) {
     const token = req.query.token as string | undefined;
 
-    if (!token) return res.redirect('/login?erro=token_invalido');
+    if (!token) return res.redirect("/login?erro=token_invalido");
     const usuario = await User.findOne({
       where: { email_confirmacao_token: token },
     });
