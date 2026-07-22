@@ -1,20 +1,17 @@
 /**
  * @file Mail.ts
- * @description Serviço de envio de emails da aplicação.
- * Utiliza a biblioteca Resend para enviar emails de forma confiável.
+ * @description Serviço de envio de emails usando Nodemailer com Gmail.
  */
 
-import { Resend } from "resend";
-import mailConfig from "../config/mail.js";
+import nodemailer from 'nodemailer';
+import mailConfig from '../config/mail.js';
 
 /**
  * Classe de serviço de email.
  * @class Mail
- * @description Gerencia o envio de emails utilizando a API do Resend.
- * Fornece uma interface simplificada para enviar emails HTML e texto.
+ * @description Gerencia o envio de emails utilizando Nodemailer + Gmail.
  *
  * @example
- * // Enviando um email
  * await Mail.send({
  *   to: "usuario@email.com",
  *   subject: "Bem-vindo!",
@@ -23,59 +20,26 @@ import mailConfig from "../config/mail.js";
  * });
  */
 class Mail {
-  /** Instância do cliente Resend */
-  private resend: Resend;
+  private transporter: nodemailer.Transporter;
 
-  /**
-   * Construtor da classe Mail.
-   * @constructor
-   * @description Inicializa o cliente Resend com a API token do ambiente.
-   * O token deve estar definido na variável MAIL_API_TOKEN no .env.
-   *
-   * @example
-   * // .env
-   * MAIL_API_TOKEN=re_abc123...
-   */
   constructor() {
-    this.resend = new Resend(process.env.MAIL_API_TOKEN);
+    // Cria o transporter com as credenciais do Gmail
+    this.transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_APP_PASSWORD,
+      },
+    });
   }
 
   /**
    * Envia um email.
-   * @method send
-   * @async
-   * @param {Object} params - Parâmetros do email
-   * @param {string} params.to - Endereço de email do destinatário
-   * @param {string} params.subject - Assunto do email
-   * @param {string} params.html - Corpo do email em HTML
-   * @param {string} params.text - Corpo do email em texto plano (fallback)
-   * @returns {Promise<Object>} Resposta da API Resend
-   * @description Envia um email utilizando a API do Resend.
-   * O remetente é configurado no arquivo mail.config.ts.
-   *
-   * @example
-   * // Enviar email simples
-   * const response = await Mail.send({
-   *   to: "cliente@email.com",
-   *   subject: "Confirmação de cadastro",
-   *   html: "<h1>Bem-vindo ao sistema!</h1>",
-   *   text: "Bem-vindo ao sistema!"
-   * });
-   * console.log("Email enviado:", response);
-   *
-   * @example
-   * // Enviar com template HTML complexo
-   * await Mail.send({
-   *   to: "usuario@email.com",
-   *   subject: "Redefinição de senha",
-   *   html: `
-   *     <div style="font-family: sans-serif;">
-   *       <h1>Redefinir senha</h1>
-   *       <a href="${link}">Clique aqui</a>
-   *     </div>
-   *   `,
-   *   text: `Redefina sua senha: ${link}`
-   * });
+   * @param params.to - Destinatário
+   * @param params.subject - Assunto
+   * @param params.html - Corpo HTML
+   * @param params.text - Corpo texto (opcional)
+   * @returns Informações do envio (messageId, etc.)
    */
   async send({
     to,
@@ -88,25 +52,18 @@ class Mail {
     html: string;
     text?: string;
   }) {
-    /**
-     * Envia o email via Resend API.
-     * @type {Object} response - Resposta da API
-     */
-    const response = await this.resend.emails.send({
+    const mailOptions = {
       from: mailConfig.from,
       to,
       subject,
       html,
       text,
-    });
-    console.log("EMAIL RESPONSE:", response);
-    return response;
+    };
+
+    const info = await this.transporter.sendMail(mailOptions);
+    console.log('E-mail enviado:', info.messageId);
+    return info;
   }
 }
 
-/**
- * Exporta instância única do serviço de email.
- * @default
- * @description Singleton para uso em toda a aplicação.
- */
 export default new Mail();

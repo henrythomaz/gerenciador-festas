@@ -14,6 +14,7 @@ import auth from "../../config/auth.js";
 
 import Queue from "../../lib/Queue.js";
 import WelcomeToBackJob from "../jobs/WelcomeToBackJob.js";
+import WelcomeEmailJob from "../jobs/WelcomeEmailJob.js";
 
 /**
  * Classe controladora de sessões/autenticação.
