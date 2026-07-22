@@ -58,8 +58,10 @@ function extractMessage(data: unknown, fallback: string): string {
   if (typeof data === "string") return data;
   if (typeof data === "object") {
     const d = data as Record<string, unknown>;
+    // Verifica os campos mais comuns, incluindo "erro" (português)
     if (typeof d.message === "string") return d.message;
     if (typeof d.error === "string") return d.error;
+    if (typeof d.erro === "string") return d.erro;      // <-- ADICIONADO
     if (Array.isArray(d.errors) && d.errors.length && typeof d.errors[0] === "string") {
       return d.errors[0] as string;
     }
@@ -122,7 +124,6 @@ export async function fetchUserProfile(userId: number): Promise<AuthUser> {
     };
   } catch (error) {
     console.error('Erro ao buscar perfil do usuário:', error);
-    // Retorna um objeto com dados mínimos (se possível) ou relança
-    throw error; // Mantém o comportamento de lançar para ser capturado no AuthProvider
+    throw error;
   }
 }

@@ -19,18 +19,18 @@ export const Route = createFileRoute("/login")({
 
 function LoginPage() {
   const navigate = useNavigate();
-  const { login } = useAuth(); // <-- pegamos a função login do contexto
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ status: number; message: string } | null>(null);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
 
     if (!email || !senha) {
-      setError("Preencha email e senha.");
+      setError({ status: 400, message: "Preencha email e senha." });
       return;
     }
 
@@ -40,18 +40,32 @@ function LoginPage() {
         method: "POST",
         body: { email, senha },
       });
-      // Usa a função do contexto para atualizar estado e localStorage
       login(data.token, data.user);
       toast.success(`Bem-vindo(a), ${data.user.nome.split(" ")[0]}!`);
       celebrate();
       navigate({ to: "/" });
     } catch (err) {
-      const msg = err instanceof ApiError ? err.message : "Não foi possível entrar.";
-      setError(msg);
-      toast.error(msg);
+      let status = 500;
+      let message = "Não foi possível entrar.";
+      if (err instanceof ApiError) {
+        status = err.status;
+        message = err.message;
+      }
+      setError({ status, message });
+      toast.error(`${status}: ${message}`);
     } finally {
       setLoading(false);
     }
+  };
+
+  const getErrorStyles = (status: number) => {
+    if (status >= 500) {
+      return "border-destructive/30 bg-destructive/10 text-destructive";
+    }
+    if (status === 404 || status === 409) {
+      return "border-yellow-500/30 bg-yellow-50 text-yellow-700";
+    }
+    return "border-orange-500/30 bg-orange-50 text-orange-700";
   };
 
   return (
@@ -94,8 +108,12 @@ function LoginPage() {
           </Field>
 
           {error && (
-            <div className="mb-4 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-2.5 text-sm text-destructive">
-              {error}
+            <div
+              className={`mb-4 rounded-xl border px-4 py-2.5 text-sm ${getErrorStyles(
+                error.status
+              )}`}
+            >
+              <span className="font-medium">{error.status}</span>: {error.message}
             </div>
           )}
 

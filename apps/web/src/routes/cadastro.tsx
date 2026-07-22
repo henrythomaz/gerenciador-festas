@@ -32,6 +32,7 @@ function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Errors>({});
   const [success, setSuccess] = useState(false);
+  const [apiError, setApiError] = useState<{ status: number; message: string } | null>(null);
 
   useEffect(() => {
     if (success) {
@@ -55,6 +56,7 @@ function SignupPage() {
     setErrors(eObj);
     if (Object.keys(eObj).length) return;
 
+    setApiError(null);
     setLoading(true);
     try {
       await api("/usuarios", {
@@ -64,12 +66,27 @@ function SignupPage() {
       setSuccess(true);
       toast.success("Conta criada! Verifique seu email para confirmar.");
     } catch (err) {
-      const msg = err instanceof ApiError ? err.message : "Não foi possível criar a conta.";
-      setErrors({ form: msg });
-      toast.error(msg);
+      let status = 500;
+      let message = "Não foi possível criar a conta.";
+      if (err instanceof ApiError) {
+        status = err.status;
+        message = err.message;
+      }
+      setApiError({ status, message });
+      toast.error(`${status}: ${message}`);
     } finally {
       setLoading(false);
     }
+  };
+
+  const getErrorStyles = (status: number) => {
+    if (status >= 500) {
+      return "border-destructive/30 bg-destructive/10 text-destructive";
+    }
+    if (status === 404 || status === 409) {
+      return "border-yellow-500/30 bg-yellow-50 text-yellow-700";
+    }
+    return "border-orange-500/30 bg-orange-50 text-orange-700";
   };
 
   if (success) {
@@ -158,9 +175,13 @@ function SignupPage() {
             />
           </Field>
 
-          {errors.form && (
-            <div className="mb-4 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-2.5 text-sm text-destructive">
-              {errors.form}
+          {apiError && (
+            <div
+              className={`mb-4 rounded-xl border px-4 py-2.5 text-sm ${getErrorStyles(
+                apiError.status
+              )}`}
+            >
+              <span className="font-medium">{apiError.status}</span>: {apiError.message}
             </div>
           )}
 
@@ -172,4 +193,3 @@ function SignupPage() {
     </SiteLayout>
   );
 }
-
